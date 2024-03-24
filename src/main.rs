@@ -1,19 +1,28 @@
-use bevy::prelude::*;
+use bevy::{
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    prelude::*,
+};
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            primary_window: Some(Window {
-                title: "Angel TD".into(),
-                name: Some("angel-td".into()),
-                resolution: bevy::window::WindowResolution::with_scale_factor_override((1920.0, 1080.0).into(), 1.0),
-                mode: bevy::window::WindowMode::BorderlessFullscreen,
-                present_mode: bevy::window::PresentMode::AutoVsync,
-                enabled_buttons: bevy::window::EnabledButtons { minimize: false, maximize: false, close: false },
+        .add_plugins((
+            DefaultPlugins.set(WindowPlugin {
+                primary_window: Some(Window {
+                    title: "Angel TD".into(),
+                    name: Some("angel-td".into()),
+                    resolution: bevy::window::WindowResolution::with_scale_factor_override((1920.0, 1080.0).into(), 1.0),
+                    mode: bevy::window::WindowMode::BorderlessFullscreen,
+                    present_mode: bevy::window::PresentMode::AutoVsync,
+                    enabled_buttons: bevy::window::EnabledButtons { minimize: false, maximize: false, close: false },
+                    ..default()
+                }),
                 ..default()
             }),
-            ..default()
-        }))
+            // Adds frame time diagnostics
+            FrameTimeDiagnosticsPlugin,
+            // Adds a system that prints diagnostics to the console
+            LogDiagnosticsPlugin::default(),
+        ))
         .add_systems(Startup, setup)
         .add_systems(Update, enemy_movement)
         .run();
