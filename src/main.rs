@@ -1,6 +1,6 @@
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::*,
+    prelude::*, sprite::MaterialMesh2dBundle,
 };
 
 fn main() {
@@ -36,16 +36,30 @@ pub struct Enemy {
 
 #[derive(Component)]
 pub struct Tower {
-    pub position: Vec2,
-    pub range: u8
+    pub range: u32
 }
+
+
+//For testing purpose
+#[derive(Component)]
+pub struct TowerRadiusIndicator {
+    pub range: u32
+}
+
+#[derive(Component)]
+pub struct TowerBullet {}
 
 #[derive(Component)]
 pub struct EnemyPath {
     pub path_points: Vec<Vec2>
 }
 
-pub fn setup (mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup (
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    asset_server: Res<AssetServer>
+) {
     commands.spawn(Camera2dBundle::default());
     commands.spawn((
         SpriteBundle {
@@ -80,6 +94,37 @@ pub fn setup (mut commands: Commands, asset_server: Res<AssetServer>) {
             velocity: 300.0,
             path_state: 0
         }
+    ));
+    commands.spawn((
+        MaterialMesh2dBundle {
+            mesh: meshes.add(Circle::default()).into(),
+            material: materials.add(Color::rgb(0., 0., 0.)),
+            transform: Transform::from_translation(Vec3::new(42., -113., 0.)).with_scale(Vec3::new(100., 100., 0.)),
+            ..default()
+        },
+        Tower {
+            range: 300
+        }
+    ));
+    commands.spawn((
+        MaterialMesh2dBundle {
+            mesh: meshes.add(Circle::default()).into(),
+            material: materials.add(Color::rgba(0., 0., 0., 0.5)),
+            transform: Transform::from_translation(Vec3::new(42., -113., -0.1)).with_scale(Vec3::new(300., 300., 0.)),
+            ..default()
+        },
+        TowerRadiusIndicator {
+            range: 300
+        }
+    ));
+    commands.spawn((
+        MaterialMesh2dBundle {
+            mesh: meshes.add(Circle::default()).into(),
+            material: materials.add(Color::rgb(1., 0., 0.)),
+            transform: Transform::from_translation(Vec3::new(42., -113., 1.)).with_scale(Vec3::new(10., 10., 0.)),
+            ..default()
+        },
+        TowerBullet {}
     ));
 }
 
