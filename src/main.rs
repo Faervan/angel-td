@@ -1,6 +1,6 @@
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::*, sprite::MaterialMesh2dBundle,
+    prelude::*, sprite::MaterialMesh2dBundle, window,
 };
 
 fn main() {
@@ -24,6 +24,7 @@ fn main() {
             LogDiagnosticsPlugin::default(),
         ))
         .add_systems(Startup, setup)
+        .add_systems(Update, window::close_on_esc)
         .add_systems(Update, enemy_movement)
         .run();
 }
