@@ -3,6 +3,8 @@ use bevy::{
     prelude::*, sprite::MaterialMesh2dBundle, window,
 };
 
+const ENEMY_SIZE: f32 = 64.;
+
 fn main() {
     App::new()
         .add_plugins((
@@ -25,7 +27,12 @@ fn main() {
         ))
         .add_systems(Startup, setup)
         .add_systems(Update, window::close_on_esc)
-        .add_systems(Update, enemy_movement)
+        .add_systems(Update, (
+            enemy_movement,
+            tower_check_for_enemies_in_range,
+            move_bullet,
+            bullet_hits_enemy
+        ).chain())
         .run();
 }
 
@@ -37,18 +44,21 @@ pub struct Enemy {
 
 #[derive(Component)]
 pub struct Tower {
-    pub range: u32
+    pub range: f32
 }
 
 
 //For testing purpose
 #[derive(Component)]
 pub struct TowerRadiusIndicator {
-    pub range: u32
+    pub range: f32
 }
 
 #[derive(Component)]
-pub struct TowerBullet {}
+pub struct TowerBullet {
+    pub velocity: f32,
+    pub direction: Vec3
+}
 
 #[derive(Component)]
 pub struct EnemyPath {
@@ -94,7 +104,7 @@ pub fn setup (
             ..default()
         },
         Enemy {
-            velocity: 300.0,
+            velocity: 300.,
             path_state: 0
         }
     ));
@@ -107,7 +117,7 @@ pub fn setup (
             ..default()
         },
         Tower {
-            range: 300
+            range: 150.
         }
     ))
     .with_children(|parent| {
@@ -119,7 +129,7 @@ pub fn setup (
                 ..default()
             },
             TowerRadiusIndicator {
-                range: 300
+                range: 300.
             }
         ));
     });
@@ -130,7 +140,10 @@ pub fn setup (
             transform: Transform::from_translation(Vec3::new(42., -113., 1.)).with_scale(Vec3::new(10., 10., 0.)),
             ..default()
         },
-        TowerBullet {}
+        TowerBullet {
+            velocity: 600.,
+            direction: Vec3::new(0., 0., 0.)
+        }
     ));
 }
 
@@ -174,4 +187,48 @@ fn enemy_reaches_destination (
     //Add tower damage logic here
     commands.entity(entity).despawn();
     println!("Enemy despawned.");
+}
+
+pub fn tower_check_for_enemies_in_range (
+    tower_query: Query<(&Transform, &Tower), With<Tower>>,
+    enemy_query: Query<&Transform, With<Enemy>>,
+    mut bullet_query: Query<(&Transform, &mut TowerBullet), With<TowerBullet>>
+) {
+    for (tower_pos, tower) in tower_query.iter() {
+        for enemy_pos in enemy_query.iter() {
+            if enemy_pos.translation.distance(tower_pos.translation) - ENEMY_SIZE / 2. <= tower.range {
+                if let Ok((bullet_pos, mut bullet)) = bullet_query.get_single_mut() {
+                    bullet.direction = {
+                        let x = enemy_pos.translation.x - bullet_pos.translation.x;
+                        let y = enemy_pos.translation.y - bullet_pos.translation.y;
+                        let distance = bullet_pos.translation.distance(enemy_pos.translation);
+                        Vec3::new(x / distance, y / distance, 0.)
+                    };
+                }
+            }
+        }
+    }
+}
+
+pub fn move_bullet (
+    mut bullet_query: Query<(&TowerBullet, &mut Transform), With<TowerBullet>>,
+    time: Res<Time>
+) {
+    if let Ok((bullet, mut bullet_pos)) = bullet_query.get_single_mut() {
+        bullet_pos.translation += bullet.direction * bullet.velocity * time.delta_seconds();
+    }
+}
+
+pub fn bullet_hits_enemy (
+    bullet_query: Query<(Entity, &Transform), With<TowerBullet>>,
+    enemy_query: Query<&Transform, With<Enemy>>,
+    mut commands: Commands
+) {
+    for (bullet, bullet_pos) in bullet_query.iter() {
+        for enemy_pos in enemy_query.iter() {
+            if bullet_pos.translation.distance(enemy_pos.translation) - ENEMY_SIZE / 2. <= 0. {
+                commands.entity(bullet).despawn();
+            }
+        }
+    }
 }
