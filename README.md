@@ -13,4 +13,4 @@ cd angel-td
 cargo run
 ```
 **WARNING:**
-The resolution is currently hardcoded to 1920x1080
+The resolution is currently hardcoded to 1920x1080, I am unaware of how launching the game on a monitor with a larger resolution will behave.
