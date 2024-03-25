@@ -8,7 +8,7 @@ I just started developing, so the "game" is not in any form playable at this poi
 **NOTE:**
 having `rustup` with the newest version of `rust` and `cargo` installed is required to run the game
 ```
-git clone https://github.com/Faervan/angel-td/
+git clone https://github.com/Faervan/angel-td.git
 cd angel-td
 cargo run
 ```
