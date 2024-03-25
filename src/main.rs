@@ -62,6 +62,7 @@ pub fn setup (
     asset_server: Res<AssetServer>
 ) {
     commands.spawn(Camera2dBundle::default());
+    //Spawn map
     commands.spawn((
         SpriteBundle {
             texture: asset_server.load("sprites/maps/demo_map.png"),
@@ -82,6 +83,7 @@ pub fn setup (
             ]
         }
     ));
+    //Spawn "enemy"
     commands.spawn((
         SpriteBundle {
             texture: asset_server.load("sprites/enemies/ball_red_large.png"),
@@ -96,6 +98,7 @@ pub fn setup (
             path_state: 0
         }
     ));
+    //Spawn "tower"
     commands.spawn((
         MaterialMesh2dBundle {
             mesh: meshes.add(Circle::default()).into(),
@@ -106,18 +109,20 @@ pub fn setup (
         Tower {
             range: 300
         }
-    ));
-    commands.spawn((
-        MaterialMesh2dBundle {
-            mesh: meshes.add(Circle::default()).into(),
-            material: materials.add(Color::rgba(0., 0., 0., 0.5)),
-            transform: Transform::from_translation(Vec3::new(42., -113., -0.1)).with_scale(Vec3::new(300., 300., 0.)),
-            ..default()
-        },
-        TowerRadiusIndicator {
-            range: 300
-        }
-    ));
+    ))
+    .with_children(|parent| {
+        parent.spawn((
+            MaterialMesh2dBundle {
+                mesh: meshes.add(Circle::default()).into(),
+                material: materials.add(Color::rgba(0., 0., 0., 0.5)),
+                transform: Transform::from_translation(Vec3::new(0., 0., -0.1)).with_scale(Vec3::new(3., 3., 0.)),
+                ..default()
+            },
+            TowerRadiusIndicator {
+                range: 300
+            }
+        ));
+    });
     commands.spawn((
         MaterialMesh2dBundle {
             mesh: meshes.add(Circle::default()).into(),
