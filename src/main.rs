@@ -39,7 +39,8 @@ fn main() {
 #[derive(Component, Debug)]
 pub struct Enemy {
     pub velocity: f32,
-    pub path_state: usize
+    pub path_state: usize,
+    pub direction: Vec3
 }
 
 #[derive(Component)]
@@ -105,7 +106,8 @@ pub fn setup (
         },
         Enemy {
             velocity: 300.,
-            path_state: 0
+            path_state: 0,
+            direction: Vec3::new(0., 0., 0.)
         }
     ));
     //Spawn "tower"
@@ -141,7 +143,7 @@ pub fn setup (
             ..default()
         },
         TowerBullet {
-            velocity: 600.,
+            velocity: 150.,
             direction: Vec3::new(0., 0., 0.)
         }
     ));
@@ -161,7 +163,8 @@ pub fn enemy_movement (
                 let distance = path.path_points[i].distance(path.path_points[i+1]);
                 Vec3::new(x / distance, y / distance, 0.)
             }).collect();
-            transform.translation += path_state_directions[enemy.path_state] * enemy.velocity * time.delta_seconds();
+            enemy.direction = path_state_directions[enemy.path_state];
+            transform.translation += enemy.direction * enemy.velocity * time.delta_seconds();
             if
                 //Distance of current enemy location from last path_point
                 path.path_points[enemy.path_state].distance(Vec2::new(transform.translation.x, transform.translation.y))
@@ -191,20 +194,32 @@ fn enemy_reaches_destination (
 
 pub fn tower_check_for_enemies_in_range (
     tower_query: Query<(&Transform, &Tower), With<Tower>>,
-    enemy_query: Query<&Transform, With<Enemy>>,
+    enemy_query: Query<(&Transform, &Enemy), With<Enemy>>,
     mut bullet_query: Query<(&Transform, &mut TowerBullet), With<TowerBullet>>
 ) {
     for (tower_pos, tower) in tower_query.iter() {
-        for enemy_pos in enemy_query.iter() {
+        for (enemy_pos, enemy) in enemy_query.iter() {
             if enemy_pos.translation.distance(tower_pos.translation) - ENEMY_SIZE / 2. <= tower.range {
-                if let Ok((bullet_pos, mut bullet)) = bullet_query.get_single_mut() {
+                if let Ok((bullet_pos, mut bullet)) = bullet_query.get_single_mut() { if bullet.direction == Vec3::new(0., 0., 0.) {
                     bullet.direction = {
-                        let x = enemy_pos.translation.x - bullet_pos.translation.x;
-                        let y = enemy_pos.translation.y - bullet_pos.translation.y;
-                        let distance = bullet_pos.translation.distance(enemy_pos.translation);
+                        //let x = enemy_pos.translation.x - bullet_pos.translation.x;
+                        //let y = enemy_pos.translation.y - bullet_pos.translation.y;
+                        //let distance = bullet_pos.translation.distance(enemy_pos.translation);
+                        let r1: f32 = 2. * bullet_pos.translation.x.powi(2) - 2. * enemy_pos.translation.x * bullet_pos.translation.x + (enemy_pos.translation.y - bullet_pos.translation.y).powi(2);
+                        let r2: f32 = 2. * (enemy_pos.translation.x * enemy.direction.x - enemy.direction.x * bullet_pos.translation.x + enemy.direction.y * (enemy_pos.translation.y - bullet_pos.translation.y));
+                        let r = - r1 / r2;
+                        let gr = Vec3::new(
+                            enemy_pos.translation.x + enemy.direction.x * r,
+                            enemy_pos.translation.y + enemy.direction.y * r,
+                            0.
+                        );
+                        let x = gr.x - bullet_pos.translation.x;
+                        let y = gr.y - bullet_pos.translation.y;
+                        let distance = bullet_pos.translation.distance(gr);
                         Vec3::new(x / distance, y / distance, 0.)
                     };
-                }
+                    println!("bullet fires in direction: {}",bullet.direction);
+                }}
             }
         }
     }
