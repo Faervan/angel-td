@@ -110,10 +110,15 @@ pub fn setup (
     ));
     //Spawn "tower"
     commands.spawn((
-        MaterialMesh2dBundle {
+        /*MaterialMesh2dBundle {
             mesh: meshes.add(Circle::default()).into(),
             material: materials.add(Color::rgb(0., 0., 0.)),
             transform: Transform::from_translation(Vec3::new(42., -113., 0.)).with_scale(Vec3::new(100., 100., 0.)),
+            ..default()
+        },*/
+        SpriteBundle {
+            texture: asset_server.load("sprites/turrets/ballista_bow.png"),
+            transform: Transform::from_translation(Vec3::new(42., -113., 0.)).with_scale(Vec3::new(1.3, 1.3, 0.)),
             ..default()
         },
         Tower {
@@ -121,11 +126,25 @@ pub fn setup (
         }
     ))
     .with_children(|parent| {
+        parent.spawn(
+            SpriteBundle {
+                texture: asset_server.load("sprites/turrets/ballista_body.png"),
+                transform: Transform::from_translation(Vec3::new(0., 0., -0.1)),
+                ..default()
+            }
+        );
+        parent.spawn(
+            SpriteBundle {
+                texture: asset_server.load("sprites/turrets/ballista_stand.png"),
+                transform: Transform::from_translation(Vec3::new(0., 0., -0.2)),
+                ..default()
+            }
+        );
         parent.spawn((
             MaterialMesh2dBundle {
                 mesh: meshes.add(Circle::default()).into(),
                 material: materials.add(Color::rgba(0., 0., 0., 0.5)),
-                transform: Transform::from_translation(Vec3::new(0., 0., -0.1)).with_scale(Vec3::new(3., 3., 0.)),
+                transform: Transform::from_translation(Vec3::new(0., 0., -0.5)).with_scale(Vec3::new(300./1.3, 300./1.3, 0.)),
                 ..default()
             },
             TowerRadiusIndicator {
