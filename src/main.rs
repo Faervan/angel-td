@@ -143,7 +143,7 @@ pub fn setup (
             ..default()
         },
         TowerBullet {
-            velocity: 150.,
+            velocity: 400.,
             direction: Vec3::new(0., 0., 0.)
         }
     ));
@@ -205,9 +205,23 @@ pub fn tower_check_for_enemies_in_range (
                         //let x = enemy_pos.translation.x - bullet_pos.translation.x;
                         //let y = enemy_pos.translation.y - bullet_pos.translation.y;
                         //let distance = bullet_pos.translation.distance(enemy_pos.translation);
-                        let r1: f32 = 2. * bullet_pos.translation.x.powi(2) - 2. * enemy_pos.translation.x * bullet_pos.translation.x + (enemy_pos.translation.y - bullet_pos.translation.y).powi(2);
+                        /*let r1: f32 = 2. * bullet_pos.translation.x.powi(2) - 2. * enemy_pos.translation.x * bullet_pos.translation.x + (enemy_pos.translation.y - bullet_pos.translation.y).powi(2);
                         let r2: f32 = 2. * (enemy_pos.translation.x * enemy.direction.x - enemy.direction.x * bullet_pos.translation.x + enemy.direction.y * (enemy_pos.translation.y - bullet_pos.translation.y));
-                        let r = - r1 / r2;
+                        let r = - r1 / r2;*/
+                        let velocity_ratio_pow2 = round_by_2_digits((enemy.velocity / bullet.velocity).powi(2));
+                        let (a, b, c) = (
+                            round_by_2_digits(enemy.direction.x.powi(2)*velocity_ratio_pow2),
+                            round_by_2_digits(2. * enemy.direction.x * velocity_ratio_pow2 * (enemy_pos.translation.x - bullet_pos.translation.x)),
+                            round_by_2_digits(velocity_ratio_pow2 * (enemy_pos.translation.x.powi(2) - 2. * enemy_pos.translation.x * bullet_pos.translation.x + bullet_pos.translation.x.powi(2)))
+                        );
+                        let r = ( - b + ( {
+                            let x = b.powi(2) - 4. * a * c;
+                            if x >= 0. {
+                                x
+                            } else {
+                                - x
+                            }
+                        } ).sqrt() ) / 2. * a;
                         let gr = Vec3::new(
                             enemy_pos.translation.x + enemy.direction.x * r,
                             enemy_pos.translation.y + enemy.direction.y * r,
@@ -216,9 +230,10 @@ pub fn tower_check_for_enemies_in_range (
                         let x = gr.x - bullet_pos.translation.x;
                         let y = gr.y - bullet_pos.translation.y;
                         let distance = bullet_pos.translation.distance(gr);
+                        println!("r: {}\na: {}\nb: {}\nc: {}",r,a,b,c);
                         Vec3::new(x / distance, y / distance, 0.)
                     };
-                    println!("bullet fires in direction: {}",bullet.direction);
+                    println!("bullet fires in direction: {}\nSquare root of 9: {}",bullet.direction, 9_f32.sqrt());
                 }}
             }
         }
@@ -246,4 +261,8 @@ pub fn bullet_hits_enemy (
             }
         }
     }
+}
+
+fn round_by_2_digits (x: f32) -> f32 {
+    (x * 100.).round() / 100.
 }
