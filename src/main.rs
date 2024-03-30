@@ -8,25 +8,30 @@ const ENEMY_SIZE: f32 = 64.;
 fn main() {
     App::new()
         .add_plugins((
-            DefaultPlugins.set(WindowPlugin {
-                primary_window: Some(Window {
-                    title: "Angel TD".into(),
-                    name: Some("angel-td".into()),
-                    resolution: bevy::window::WindowResolution::with_scale_factor_override((1920.0, 1080.0).into(), 1.0),
-                    mode: bevy::window::WindowMode::BorderlessFullscreen,
-                    present_mode: bevy::window::PresentMode::AutoVsync,
-                    enabled_buttons: bevy::window::EnabledButtons { minimize: false, maximize: false, close: false },
+            DefaultPlugins.set(
+                WindowPlugin {
+                    primary_window: Some(Window {
+                        title: "Angel TD".into(),
+                        name: Some("angel-td".into()),
+                        resolution: bevy::window::WindowResolution::with_scale_factor_override((1920.0, 1080.0).into(), 1.0),
+                        mode: bevy::window::WindowMode::BorderlessFullscreen,
+                        present_mode: bevy::window::PresentMode::AutoVsync,
+                        enabled_buttons: bevy::window::EnabledButtons { minimize: false, maximize: false, close: false },
+                        ..default()
+                    }),
                     ..default()
-                }),
-                ..default()
-            }),
+                }
+            ).set(ImagePlugin::default_nearest()),
             // Adds frame time diagnostics
             FrameTimeDiagnosticsPlugin,
             // Adds a system that prints diagnostics to the console
             LogDiagnosticsPlugin::default(),
         ))
         .add_systems(Startup, setup)
-        .add_systems(Update, window::close_on_esc)
+        .add_systems(Update, (
+            window::close_on_esc,
+            animate_sprite
+        ))
         .add_systems(Update, (
             enemy_movement,
             tower_check_for_enemies_in_range,
@@ -65,11 +70,22 @@ pub struct EnemyPath {
     pub path_points: Vec<Vec2>
 }
 
+#[derive(Component)]
+struct AnimationIndices {
+    first: usize,
+    last: usize,
+    forward: bool
+}
+
+#[derive(Component, Deref, DerefMut)]
+struct AnimationTimer(Timer);
+
 pub fn setup (
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    asset_server: Res<AssetServer>
+    asset_server: Res<AssetServer>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>
 ) {
     commands.spawn(Camera2dBundle::default());
     //Spawn map
@@ -109,49 +125,56 @@ pub fn setup (
         }
     ));
     //Spawn "tower"
-    commands.spawn((
-        /*MaterialMesh2dBundle {
-            mesh: meshes.add(Circle::default()).into(),
-            material: materials.add(Color::rgb(0., 0., 0.)),
-            transform: Transform::from_translation(Vec3::new(42., -113., 0.)).with_scale(Vec3::new(100., 100., 0.)),
-            ..default()
-        },*/
-        SpriteBundle {
-            texture: asset_server.load("sprites/turrets/ballista_bow.png"),
-            transform: Transform::from_translation(Vec3::new(42., -113., 0.)).with_scale(Vec3::new(1.3, 1.3, 0.)),
-            ..default()
-        },
-        Tower {
-            range: 150.
-        }
-    ))
-    .with_children(|parent| {
-        parent.spawn(
-            SpriteBundle {
-                texture: asset_server.load("sprites/turrets/ballista_body.png"),
-                transform: Transform::from_translation(Vec3::new(0., 0., -0.1)),
-                ..default()
-            }
-        );
-        parent.spawn(
-            SpriteBundle {
-                texture: asset_server.load("sprites/turrets/ballista_stand.png"),
-                transform: Transform::from_translation(Vec3::new(0., 0., -0.2)),
-                ..default()
-            }
-        );
-        parent.spawn((
-            MaterialMesh2dBundle {
-                mesh: meshes.add(Circle::default()).into(),
-                material: materials.add(Color::rgba(0., 0., 0., 0.5)),
-                transform: Transform::from_translation(Vec3::new(0., 0., -0.5)).with_scale(Vec3::new(300./1.3, 300./1.3, 0.)),
+    {
+        let texture = asset_server.load("sprites/turrets/ballista_bow_sheet.png");
+        let layout = TextureAtlasLayout::from_grid(Vec2::new(100.,100.), 4, 1, None, None);
+        let texture_atlas_layout = texture_atlas_layouts.add(layout);
+        // Use only the subset of sprites in the sheet that make up the run animation
+        let animation_indices = AnimationIndices { first: 0, last: 3, forward: true };
+        commands.spawn((
+            SpriteSheetBundle {
+                texture,
+                atlas: TextureAtlas {
+                    layout: texture_atlas_layout,
+                    index: animation_indices.first,
+                },
+                transform: Transform::from_translation(Vec3::new(42., -113., 0.)).with_scale(Vec3::new(1.3, 1.3, 0.)),
                 ..default()
             },
-            TowerRadiusIndicator {
-                range: 300.
+            animation_indices,
+            AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+            Tower {
+                range: 150.
             }
-        ));
-    });
+        ))
+        .with_children(|parent| {
+            parent.spawn(
+                SpriteBundle {
+                    texture: asset_server.load("sprites/turrets/ballista_body.png"),
+                    transform: Transform::from_translation(Vec3::new(0., 0., -0.1)),
+                    ..default()
+                }
+            );
+            parent.spawn(
+                SpriteBundle {
+                    texture: asset_server.load("sprites/turrets/ballista_stand.png"),
+                    transform: Transform::from_translation(Vec3::new(0., 0., -0.2)),
+                    ..default()
+                }
+            );
+            parent.spawn((
+                MaterialMesh2dBundle {
+                    mesh: meshes.add(Circle::default()).into(),
+                    material: materials.add(Color::rgba(0., 0., 0., 0.5)),
+                    transform: Transform::from_translation(Vec3::new(0., 0., -0.5)).with_scale(Vec3::new(300./1.3, 300./1.3, 0.)),
+                    ..default()
+                },
+                TowerRadiusIndicator {
+                    range: 300.
+                }
+            ));
+        });
+    }
     commands.spawn((
         MaterialMesh2dBundle {
             mesh: meshes.add(Circle::default()).into(),
@@ -248,6 +271,29 @@ pub fn bullet_hits_enemy (
             if bullet_pos.translation.distance(enemy_pos.translation) - ENEMY_SIZE / 2. <= 0. {
                 commands.entity(bullet).despawn();
             }
+        }
+    }
+}
+
+//Straight up copy-pasta from sprite_sheet bevy example (0.13):
+fn animate_sprite(
+    time: Res<Time>,
+    mut query: Query<(&mut AnimationIndices, &mut AnimationTimer, &mut TextureAtlas)>,
+) {
+    for (mut indices, mut timer, mut atlas) in &mut query {
+        timer.tick(time.delta());
+        if timer.just_finished() {
+            atlas.index = if atlas.index == indices.last {
+                indices.forward = false;
+                atlas.index - 1
+            } else if atlas.index == indices.first {
+                indices.forward = true;
+                atlas.index + 1
+            } else if indices.forward {
+                atlas.index + 1
+            } else {
+                atlas.index -1
+            };
         }
     }
 }
