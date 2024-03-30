@@ -317,6 +317,7 @@ fn rotate_ballista (
             //Getting the angle between default tower rotation and enemy
             let angle_to_enemy = (enemy.translation.truncate() - ballista.translation.truncate()).angle_between(Vec2::new(0.,1.));
             //Calculating the rotation of the tower, so that it "looks" into the direction of the enemy
+            //TAU is The full circle constant (τ) and equal to 2π.
             ballista.rotation = Quat::from_rotation_z(-angle_to_enemy-std::f32::consts::TAU);
             //ballista.rotate_z(rotate.speed * std::f32::consts::TAU * time.delta_seconds());
         }
