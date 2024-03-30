@@ -30,7 +30,8 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, (
             window::close_on_esc,
-            animate_sprite
+            animate_sprite,
+            rotate_ballista
         ))
         .add_systems(Update, (
             enemy_movement,
@@ -79,6 +80,11 @@ struct AnimationIndices {
 
 #[derive(Component, Deref, DerefMut)]
 struct AnimationTimer(Timer);
+
+#[derive(Component)]
+struct Rotatable {
+    speed: f32,  //Rotations per second
+}
 
 pub fn setup (
     mut commands: Commands,
@@ -145,6 +151,9 @@ pub fn setup (
             AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
             Tower {
                 range: 150.
+            },
+            Rotatable {
+                speed: 0.3
             }
         ))
         .with_children(|parent| {
@@ -294,6 +303,22 @@ fn animate_sprite(
             } else {
                 atlas.index -1
             };
+        }
+    }
+}
+
+fn rotate_ballista (
+    time: Res<Time>,
+    mut ballistas: Query<(&mut Transform, &Rotatable), Without<Enemy>>,
+    enemy: Query<&Transform, With<Enemy>>
+) {
+    if let Ok(enemy) = enemy.get_single() {
+        for (mut ballista, rotate) in &mut ballistas {
+            //Getting the angle between default tower rotation and enemy
+            let angle_to_enemy = (enemy.translation.truncate() - ballista.translation.truncate()).angle_between(Vec2::new(0.,1.));
+            //Calculating the rotation of the tower, so that it "looks" into the direction of the enemy
+            ballista.rotation = Quat::from_rotation_z(-angle_to_enemy-std::f32::consts::TAU);
+            //ballista.rotate_z(rotate.speed * std::f32::consts::TAU * time.delta_seconds());
         }
     }
 }
