@@ -3,7 +3,11 @@ use bevy::prelude::*;
 mod towers;
 mod enemies;
 pub mod maps;
-use {enemies::*, towers::*, maps::*};
+
+mod systems;
+mod components;
+
+use {enemies::*, towers::*, maps::*, systems::*};
 
 pub struct GamePlugin;
 
@@ -14,6 +18,10 @@ impl Plugin for GamePlugin {
                 EnemyPlugin,
                 TowerPlugin,
                 MapPlugin,
+            ))
+            .add_systems(Update, (
+                permanent_animated_sprites,
+                once_animated_sprites,
             ));
     }
 }

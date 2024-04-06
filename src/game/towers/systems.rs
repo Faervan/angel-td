@@ -1,6 +1,7 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use super::{
     components::*,
+    super::components::{AnimationIndices, AnimationTimer, ExecuteAnimationOnce},
     super::enemies::components::Enemy
 };
 
@@ -68,13 +69,15 @@ pub fn spawn_tower(
 }
 
 pub fn tower_check_for_enemies_in_range (
-    tower_query: Query<(&Transform, &Tower), With<Tower>>,
+    tower_query: Query<(&Transform, &Tower, Entity), With<Tower>>,
     enemy_query: Query<&Transform, With<Enemy>>,
-    mut bullet_query: Query<(&Transform, &mut TowerBullet), With<TowerBullet>>
+    mut bullet_query: Query<(&Transform, &mut TowerBullet), With<TowerBullet>>,
+    mut commands: Commands
 ) {
-    for (tower_pos, tower) in tower_query.iter() {
+    for (tower_pos, tower, entity) in tower_query.iter() {
         for enemy_pos in enemy_query.iter() {
             if enemy_pos.translation.distance(tower_pos.translation) - ENEMY_SIZE / 2. <= tower.range {
+                //Enemy is in tower range
                 if let Ok((bullet_pos, mut bullet)) = bullet_query.get_single_mut() {
                     bullet.direction = {
                         let x = enemy_pos.translation.x - bullet_pos.translation.x;
@@ -83,29 +86,8 @@ pub fn tower_check_for_enemies_in_range (
                         Vec3::new(x / distance, y / distance, 0.)
                     };
                 }
+                commands.entity(entity).insert(ExecuteAnimationOnce);
             }
-        }
-    }
-}
-
-pub fn animate_sprite(
-    time: Res<Time>,
-    mut query: Query<(&mut AnimationIndices, &mut AnimationTimer, &mut TextureAtlas)>,
-) {
-    for (mut indices, mut timer, mut atlas) in &mut query {
-        timer.tick(time.delta());
-        if timer.just_finished() {
-            atlas.index = if atlas.index == indices.last {
-                indices.forward = false;
-                atlas.index - 1
-            } else if atlas.index == indices.first {
-                indices.forward = true;
-                atlas.index + 1
-            } else if indices.forward {
-                atlas.index + 1
-            } else {
-                atlas.index -1
-            };
         }
     }
 }
