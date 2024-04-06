@@ -31,7 +31,7 @@ pub fn spawn_tower(
             ..default()
         },
         animation_indices,
-        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+        AnimationTimer(Timer::from_seconds(0.05, TimerMode::Repeating)),
         Tower {
             range: 150.
         },
@@ -92,6 +92,31 @@ pub fn tower_check_for_enemies_in_range (
     }
 }
 
+//Shouting animations and respawning of bullet
+pub fn tower_shouting_procedure (
+    time: Res<Time>,
+    mut query: Query<(&mut AnimationIndices, &mut AnimationTimer, &mut TextureAtlas, Entity), With<ExecuteAnimationOnce>>,
+    mut commands: Commands
+) {
+    for (mut indices, mut timer, mut atlas, entity) in &mut query {
+        timer.tick(time.delta());
+        if timer.just_finished() {
+            atlas.index = if atlas.index == indices.last {
+                indices.forward = false;
+                atlas.index - 1
+            } else if atlas.index == indices.first && !indices.forward {
+                indices.forward = true;
+                commands.entity(entity).remove::<ExecuteAnimationOnce>();
+                atlas.index
+            } else if indices.forward {
+                atlas.index + 1
+            } else {
+                atlas.index -1
+            };
+        }
+    }
+}
+
 pub fn rotate_ballista (
     //time: Res<Time>,
     mut ballistas: Query<(&mut Transform, &Rotatable), Without<Enemy>>,
@@ -128,6 +153,7 @@ pub fn spawn_bullet(
     ));
 }
 
+//Move and redirect bullet
 pub fn move_bullet (
     mut bullet_query: Query<(&TowerBullet, &mut Transform), With<TowerBullet>>,
     time: Res<Time>

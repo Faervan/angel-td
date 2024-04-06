@@ -14,8 +14,9 @@ impl Plugin for TowerPlugin {
             .add_systems(Update, (
                 rotate_ballista,
                 tower_check_for_enemies_in_range,
+                tower_shouting_procedure,
                 move_bullet,
-                bullet_hits_enemy
+                bullet_hits_enemy,
             ));
     }
 }

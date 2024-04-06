@@ -21,7 +21,6 @@ impl Plugin for GamePlugin {
             ))
             .add_systems(Update, (
                 permanent_animated_sprites,
-                once_animated_sprites,
             ));
     }
 }
