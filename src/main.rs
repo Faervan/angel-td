@@ -3,8 +3,19 @@ use bevy::{
     prelude::*, window,
 };
 
-mod game;
-use game::*;
+mod components;
+mod bullet;
+mod tower;
+mod enemy;
+mod enemy_types;
+mod tower_types;
+mod bullet_types;
+use {
+    components::EnemyPath,
+    enemy::*,
+    tower::*,
+    bullet::*
+};
 
 fn main() {
     App::new()
@@ -27,18 +38,49 @@ fn main() {
             FrameTimeDiagnosticsPlugin,
             // Adds a system that prints diagnostics to the console
             LogDiagnosticsPlugin::default(),
-            GamePlugin,
         ))
-        .add_systems(Startup, setup)
+        .add_systems(Startup, (
+            setup,
+            spawn_enemies,
+            spawn_tower,
+        ))
         .add_systems(Update, (
             window::close_on_esc,
+            tower_get_target,
+            tower_lost_target,
         ))
+        .add_systems(Update, (
+            enemy_movement,
+            enemy_at_destination,
+        ).chain())
         .run();
 }
 
 pub fn setup (
-    mut commands: Commands
+    mut commands: Commands,
+    asset_server: ResMut<AssetServer>
 ) {
     //Spawn Camera
     commands.spawn(Camera2dBundle::default());
+    //Spawn map
+    commands.spawn((
+        SpriteBundle {
+            texture: asset_server.load("sprites/maps/demo_map.png"),
+            transform: Transform {
+                translation: Vec3 { x: 0.0, y: 0.0, z: -1.0},
+                ..default()
+            },
+            ..default()
+        },
+        EnemyPath {
+            path_points: vec![
+                Vec2::new(-960., -240.),
+                Vec2::new(413., -210.),
+                Vec2::new(407., -67.),
+                Vec2::new(153., -74.),
+                Vec2::new(153., 63.),
+                Vec2::new(960., 65.)
+            ]
+        }
+    ));
 }
