@@ -34,7 +34,10 @@ pub fn spawn_tower(
             },
             animation_indices,
             AnimationTimer(Timer::from_seconds(animation_frame_duration, TimerMode::Repeating)),
-            *tower_type,
+            Tower {
+                tower_type: *tower_type,
+                cooldown: tower_type.cooldown(),
+            }
         ))
         .with_children(|parent| {
             parent.spawn((
@@ -54,7 +57,10 @@ pub fn spawn_tower(
                 transform: Transform::from_translation(tower_position).with_scale(tower_scale),
                 ..default()
             },
-            *tower_type,
+            Tower {
+                tower_type: *tower_type,
+                cooldown: tower_type.cooldown(),
+            }
         ))
         .with_children(|parent| {
             parent.spawn((
@@ -71,30 +77,52 @@ pub fn spawn_tower(
 }
 
 pub fn tower_get_target(
-    tower_query: Query<(Entity, &TowerType, &Transform), Without<Target>>,
+    mut tower_query: Query<(Entity, &Tower, &mut Transform), (Without<Target>, Without<Enemy>)>,
     enemy_query: Query<(Entity, &Transform), With<Enemy>>,
     mut commands: Commands,
 ) {
-    for (tower_entity, tower_type, tower_pos) in tower_query.iter() {
+    for (tower_entity, tower, mut tower_pos) in tower_query.iter_mut() {
         for (enemy_entity, enemy_pos) in enemy_query.iter() {
-            if tower_pos.translation.distance(enemy_pos.translation) <= tower_type.range() {
+            if tower_pos.translation.distance(enemy_pos.translation) <= tower.tower_type.range() {
                 commands.entity(tower_entity).insert(Target(enemy_entity));
                 println!("Tower got Target!");
+                //Snap to enemy
+                //Getting the angle between default tower rotation and enemy
+                let angle_to_enemy = (enemy_pos.translation.truncate() - tower_pos.translation.truncate()).angle_between(Vec2::new(0.,1.));
+                //Calculating the rotation of the tower, so that it "looks" into the direction of the enemy
+                //TAU is The full circle constant (τ) and equal to 2π.
+                tower_pos.rotation = Quat::from_rotation_z(- angle_to_enemy - std::f32::consts::TAU);
             }
         }
     }
 }
 
 pub fn tower_lost_target(
-    tower_query: Query<(Entity, &TowerType, &Target, &Transform), With<Target>>,
+    tower_query: Query<(Entity, &Tower, &Target, &Transform), With<Target>>,
     enemy_query: Query<&Transform, With<Enemy>>,
     mut commands: Commands,
 ) {
-    for (tower_entity, tower_type, target, tower_pos) in tower_query.iter() {
+    for (tower_entity, tower, target, tower_pos) in tower_query.iter() {
         let target = enemy_query.get(target.0).unwrap().translation;
-        if tower_pos.translation.distance(target) > tower_type.range() {
+        if tower_pos.translation.distance(target) > tower.tower_type.range() {
             commands.entity(tower_entity).remove::<Target>();
             println!("Tower lost Target!");
         }
+    }
+}
+
+pub fn tower_shoot_at_target(
+    mut tower_query: Query<(Entity, &Tower, &Target, &mut Transform), (With<Target>, Without<Enemy>)>,
+    enemy_query: Query<&Transform, With<Enemy>>,
+    mut commands: Commands,
+) {
+    for (tower_entity, tower, target, mut tower_pos) in tower_query.iter_mut() {
+        let target = enemy_query.get(target.0).unwrap().translation;
+        //Rotate with enemy
+        //Getting the angle between default tower rotation and enemy
+        let angle_to_enemy = (target.truncate() - tower_pos.translation.truncate()).angle_between(Vec2::new(0.,1.));
+        //Calculating the rotation of the tower, so that it "looks" into the direction of the enemy
+        //TAU is The full circle constant (τ) and equal to 2π.
+        tower_pos.rotation = Quat::from_rotation_z(- angle_to_enemy - std::f32::consts::TAU);
     }
 }

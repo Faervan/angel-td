@@ -1,15 +1,15 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use super::bullet_types::*;
 
-#[derive(Component, Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum TowerType {
     XBow,
 }
 
 impl TowerType {
-    pub fn reload_time(&self) -> f32 {
+    pub fn cooldown(&self) -> Timer {
         match self {
-            TowerType::XBow => 0.3,
+            TowerType::XBow => Timer::from_seconds(0.3, TimerMode::Repeating),
         }
     }
     pub fn bullet_type(&self) -> BulletType {
