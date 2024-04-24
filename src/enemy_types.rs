@@ -5,7 +5,7 @@ pub enum EnemyType {
 }
 
 impl EnemyType {
-    pub fn health(&self) -> u32 {
+    pub fn health(&self) -> usize {
         match self {
             EnemyType::Militia => 50,
             EnemyType::HolyKnight => 100,
@@ -23,6 +23,13 @@ impl EnemyType {
         match self {
             EnemyType::Militia => "sprites/enemies/ball_red_large.png",
             EnemyType::HolyKnight => "sprites/enemies/ball_red_large.png",
+        }
+    }
+
+    pub fn hit_circle(&self) -> f32 {
+        match self {
+            EnemyType::Militia => 50.,
+            EnemyType::HolyKnight => 0.,
         }
     }
 }

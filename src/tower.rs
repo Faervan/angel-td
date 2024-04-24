@@ -103,26 +103,43 @@ pub fn tower_lost_target(
     mut commands: Commands,
 ) {
     for (tower_entity, tower, target, tower_pos) in tower_query.iter() {
-        let target = enemy_query.get(target.0).unwrap().translation;
-        if tower_pos.translation.distance(target) > tower.tower_type.range() {
+        if let Ok(target) = enemy_query.get(target.0) {
+            if tower_pos.translation.distance(target.translation) > tower.tower_type.range() {
+                commands.entity(tower_entity).remove::<Target>();
+                println!("Tower lost Target!");
+            }
+        } else {
             commands.entity(tower_entity).remove::<Target>();
-            println!("Tower lost Target!");
         }
     }
 }
 
-pub fn tower_shoot_at_target(
-    mut tower_query: Query<(Entity, &Tower, &Target, &mut Transform), (With<Target>, Without<Enemy>)>,
+pub fn tower_rotate_at_target(
+    mut tower_query: Query<(&Target, &mut Transform), (With<Target>, Without<Enemy>)>,
     enemy_query: Query<&Transform, With<Enemy>>,
-    mut commands: Commands,
 ) {
-    for (tower_entity, tower, target, mut tower_pos) in tower_query.iter_mut() {
-        let target = enemy_query.get(target.0).unwrap().translation;
-        //Rotate with enemy
-        //Getting the angle between default tower rotation and enemy
-        let angle_to_enemy = (target.truncate() - tower_pos.translation.truncate()).angle_between(Vec2::new(0.,1.));
-        //Calculating the rotation of the tower, so that it "looks" into the direction of the enemy
-        //TAU is The full circle constant (τ) and equal to 2π.
-        tower_pos.rotation = Quat::from_rotation_z(- angle_to_enemy - std::f32::consts::TAU);
+    for (target, mut tower_pos) in tower_query.iter_mut() {
+        if let Ok(target) = enemy_query.get(target.0) {
+            //Rotate with enemy
+            //Getting the angle between default tower rotation and enemy
+            let angle_to_enemy = (target.translation.truncate() - tower_pos.translation.truncate()).angle_between(Vec2::new(0.,1.));
+            //Calculating the rotation of the tower, so that it "looks" into the direction of the enemy
+            //TAU is The full circle constant (τ) and equal to 2π.
+            tower_pos.rotation = Quat::from_rotation_z(- angle_to_enemy - std::f32::consts::TAU);
+        }
+    }
+}
+
+pub fn tower_charge(
+    mut tower_query: Query<(Entity, &mut Tower), Without<IsCharged>>,
+    mut commands: Commands,
+    time: Res<Time>,
+) {
+    for (tower_entity, mut tower) in tower_query.iter_mut() {
+        tower.cooldown.tick(time.delta());
+        if tower.cooldown.just_finished() {
+            println!("Cooldown finished");
+            commands.entity(tower_entity).insert(IsCharged);
+        }
     }
 }

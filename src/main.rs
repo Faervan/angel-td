@@ -48,7 +48,11 @@ fn main() {
             window::close_on_esc,
             tower_get_target,
             tower_lost_target,
-            tower_shoot_at_target,
+            tower_rotate_at_target,
+            tower_charge,
+            spawn_bullet,
+            move_bullet,
+            bullet_hits_enemy,
         ))
         .add_systems(Update, (
             enemy_movement,

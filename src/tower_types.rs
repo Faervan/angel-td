@@ -1,4 +1,4 @@
-use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
+use bevy::prelude::*;
 use super::bullet_types::*;
 
 #[derive(Debug, Clone, Copy)]
@@ -22,7 +22,11 @@ impl TowerType {
             TowerType::XBow => 150.,
         }
     }
-    //Returns a sprite and (if it's a sheet) the number of grid columns
+    pub fn damage(&self) -> usize {
+        match self {
+            TowerType::XBow => 20,
+        }
+    }
     pub fn sprite(&self) -> &str {
         match self {
             TowerType::XBow => "sprites/turrets/ballista_bow_sheet.png",

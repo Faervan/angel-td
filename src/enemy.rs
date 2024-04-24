@@ -12,6 +12,7 @@ pub fn spawn_enemies (
     asset_server: ResMut<AssetServer>
 ) {
     let enemy_type: &EnemyType = &EnemyType::Militia;
+    let health = enemy_type.health();
     commands.spawn((
         SpriteBundle {
             texture: asset_server.load(enemy_type.sprite()),
@@ -23,7 +24,9 @@ pub fn spawn_enemies (
         },
         Enemy {
             enemy_type: *enemy_type,
-            path_state: 0
+            path_state: 0,
+            real_health: health,
+            calc_health: health,
         }
     ));
 }
