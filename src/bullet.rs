@@ -3,28 +3,38 @@ use super::components::*;
 
 pub fn spawn_bullet(
     tower_query: Query<(Entity, &Transform, &Tower, &Target), (With<IsCharged>, Without<Enemy>)>,
-    //enemy_query: Query<&Transform, With<Enemy>>,
+    mut enemy_query: Query<&mut Enemy, With<Enemy>>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for (tower_entity, tower_pos, tower, target) in tower_query.iter() {
-        commands.spawn((
-            MaterialMesh2dBundle {
-                mesh: meshes.add(Circle::default()).into(),
-                material: materials.add(Color::rgb(1., 0., 0.)),
-                transform: Transform::from_translation(tower_pos.translation).with_scale(Vec3::new(10., 10., 1.)),
-                ..default()
-            },
-            Bullet {
-                origin: tower_entity,
-                target: target.0,
-                bullet_type: tower.tower_type.bullet_type(),
-                damage: tower.tower_type.damage(),
-            },
-        ));
-        println!("Spawned new Bullet.");
-        commands.entity(tower_entity).remove::<IsCharged>();
+        if let Ok(mut enemy) = enemy_query.get_mut(target.0) {
+            let damage = tower.tower_type.damage();
+            commands.spawn((
+                MaterialMesh2dBundle {
+                    mesh: meshes.add(Circle::default()).into(),
+                    material: materials.add(Color::rgb(1., 0., 0.)),
+                    transform: Transform::from_translation(tower_pos.translation).with_scale(Vec3::new(10., 10., 1.)),
+                    ..default()
+                },
+                Bullet {
+                    origin: tower_entity,
+                    target: target.0,
+                    bullet_type: tower.tower_type.bullet_type(),
+                    damage,
+                },
+            ));
+            println!("Spawned new Bullet.");
+            //Reducing the targets calc_health, so that the Tower does not shout at a target that will die by bullets already shot
+            if enemy.calc_health >= damage {
+                enemy.calc_health -= damage;
+            } else {
+                enemy.calc_health = 0;
+            }
+            println!("Calc_health: {}", enemy.calc_health);
+            commands.entity(tower_entity).remove::<IsCharged>();
+        }
     }
 }
 

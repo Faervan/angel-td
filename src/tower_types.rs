@@ -9,7 +9,7 @@ pub enum TowerType {
 impl TowerType {
     pub fn cooldown(&self) -> Timer {
         match self {
-            TowerType::XBow => Timer::from_seconds(0.3, TimerMode::Repeating),
+            TowerType::XBow => Timer::from_seconds(0.2, TimerMode::Repeating),
         }
     }
     pub fn bullet_type(&self) -> BulletType {
@@ -19,12 +19,12 @@ impl TowerType {
     }
     pub fn range(&self) -> f32 {
         match self {
-            TowerType::XBow => 150.,
+            TowerType::XBow => 200.,
         }
     }
     pub fn damage(&self) -> usize {
         match self {
-            TowerType::XBow => 20,
+            TowerType::XBow => 10,
         }
     }
     pub fn sprite(&self) -> &str {

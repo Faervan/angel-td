@@ -78,12 +78,12 @@ pub fn spawn_tower(
 
 pub fn tower_get_target(
     mut tower_query: Query<(Entity, &Tower, &mut Transform), (Without<Target>, Without<Enemy>)>,
-    enemy_query: Query<(Entity, &Transform), With<Enemy>>,
+    enemy_query: Query<(Entity, &Transform, &Enemy), With<Enemy>>,
     mut commands: Commands,
 ) {
     for (tower_entity, tower, mut tower_pos) in tower_query.iter_mut() {
-        for (enemy_entity, enemy_pos) in enemy_query.iter() {
-            if tower_pos.translation.distance(enemy_pos.translation) <= tower.tower_type.range() {
+        for (enemy_entity, enemy_pos, enemy) in enemy_query.iter() {
+            if tower_pos.translation.distance(enemy_pos.translation) <= tower.tower_type.range() && enemy.calc_health > 0 {
                 commands.entity(tower_entity).insert(Target(enemy_entity));
                 println!("Tower got Target!");
                 //Snap to enemy
@@ -99,12 +99,12 @@ pub fn tower_get_target(
 
 pub fn tower_lost_target(
     tower_query: Query<(Entity, &Tower, &Target, &Transform), With<Target>>,
-    enemy_query: Query<&Transform, With<Enemy>>,
+    enemy_query: Query<(&Transform, &Enemy), With<Enemy>>,
     mut commands: Commands,
 ) {
     for (tower_entity, tower, target, tower_pos) in tower_query.iter() {
-        if let Ok(target) = enemy_query.get(target.0) {
-            if tower_pos.translation.distance(target.translation) > tower.tower_type.range() {
+        if let Ok((enemy_pos, enemy)) = enemy_query.get(target.0) {
+            if tower_pos.translation.distance(enemy_pos.translation) > tower.tower_type.range() || enemy.calc_health == 0 {
                 commands.entity(tower_entity).remove::<Target>();
                 println!("Tower lost Target!");
             }

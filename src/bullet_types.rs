@@ -7,7 +7,7 @@ pub enum BulletType {
 impl BulletType {
     pub fn velocity(&self) -> f32 {
         match self {
-            BulletType::RedBlob => 600.,
+            BulletType::RedBlob => 450.,
             BulletType::Arrow => 600.,
         }
     }
