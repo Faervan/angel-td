@@ -1,35 +1,67 @@
 use bevy::prelude::*;
 
 
-use crate::enemy_types::EnemyType;
+use crate::{enemy_types::EnemyType, enemy_wave_map::{WaveMap, Waves}};
 
 use super::components::{
     EnemyPath,
     Enemy
 };
 
-pub fn spawn_enemies (
+pub fn spawn_enemies(
+    mut waves: ResMut<Waves>,
+    wavemap: Res<WaveMap>,
     mut commands: Commands,
-    asset_server: ResMut<AssetServer>
+    asset_server: ResMut<AssetServer>,
+    time: Res<Time>
 ) {
-    let enemy_type: &EnemyType = &EnemyType::Militia;
-    let health = enemy_type.health();
-    commands.spawn((
-        SpriteBundle {
-            texture: asset_server.load(enemy_type.sprite()),
-            transform: Transform {
-                translation: Vec3::new(-960., -240., 0.),
-                ..default()
-            },
-            ..default()
-        },
-        Enemy {
-            enemy_type: *enemy_type,
-            path_state: 0,
-            real_health: health,
-            calc_health: health,
+    if waves.queue.len() == 0 {
+        if waves.wave_margin.paused() {
+            waves.wave_margin.unpause();
         }
-    ));
+        waves.wave_margin.tick(time.delta());
+        if waves.wave_margin.finished() {
+            for (enemy_type, range) in wavemap.wave_range.iter() {
+                if range.lowest_level <= waves.current && range.highest_level >= waves.current {
+                    let diff_per_wave = (range.highest_probability as f32 - range.lowest_probability as f32)/(range.highest_level as f32 - range.lowest_level as f32);
+                    let this_wave = range.lowest_probability as f32 + diff_per_wave * waves.current as f32 - range.lowest_level as f32;
+                    for _ in 0..this_wave.round() as usize {
+                        waves.queue.push_back(*enemy_type);
+                    }
+                    println!("{:?}", waves.queue);
+                }
+            }
+            waves.current += 1;
+            println!("new wave started! wave: {}", waves.current);
+            waves.wave_margin.reset();
+            waves.wave_margin.pause();
+        }
+    }
+    if waves.current >= wavemap.waves {
+        println!("All waves completed!");
+    } else if waves.queue.len() > 0 {
+        waves.spawn_delay.tick(time.delta());
+        if waves.spawn_delay.just_finished() {
+            let enemy_type: EnemyType = waves.queue.pop_front().unwrap();
+            let health = enemy_type.health();
+            commands.spawn((
+                SpriteBundle {
+                    texture: asset_server.load(enemy_type.sprite()),
+                    transform: Transform {
+                        translation: Vec3::new(-960., -240., 0.),
+                        ..default()
+                    },
+                    ..default()
+                },
+                Enemy {
+                    enemy_type: enemy_type,
+                    path_state: 0,
+                    real_health: health,
+                    calc_health: health,
+                }
+            ));
+        }
+    }
 }
 
 pub fn enemy_movement (

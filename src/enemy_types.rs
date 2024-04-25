@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum EnemyType {
     Militia,
     HolyKnight,
@@ -7,7 +7,7 @@ pub enum EnemyType {
 impl EnemyType {
     pub fn health(&self) -> usize {
         match self {
-            EnemyType::Militia => 50,
+            EnemyType::Militia => 40,
             EnemyType::HolyKnight => 100,
         }
     }
@@ -19,7 +19,7 @@ impl EnemyType {
         }
     }
 
-    pub fn sprite(&self) -> &str {
+    pub fn sprite(&self) -> &'static str {
         match self {
             EnemyType::Militia => "sprites/enemies/ball_red_large.png",
             EnemyType::HolyKnight => "sprites/enemies/ball_red_large.png",

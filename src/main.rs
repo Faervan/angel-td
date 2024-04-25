@@ -1,7 +1,12 @@
+use std::collections::HashMap;
+use std::collections::VecDeque;
+
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     prelude::*, window,
 };
+use enemy_types::EnemyType;
+use enemy_wave_map::{WaveMap, WaveRange, Waves};
 
 mod components;
 mod bullet;
@@ -10,11 +15,12 @@ mod enemy;
 mod enemy_types;
 mod tower_types;
 mod bullet_types;
+mod enemy_wave_map;
 use {
     components::EnemyPath,
     enemy::*,
     tower::*,
-    bullet::*
+    bullet::*,
 };
 
 fn main() {
@@ -41,11 +47,11 @@ fn main() {
         ))
         .add_systems(Startup, (
             setup,
-            spawn_enemies,
             spawn_tower,
         ))
         .add_systems(Update, (
             window::close_on_esc,
+            spawn_enemies,
             tower_get_target,
             tower_lost_target,
             tower_rotate_at_target,
@@ -60,6 +66,25 @@ fn main() {
             enemy_movement,
             enemy_at_destination,
         ).chain())
+        .insert_resource(
+            Waves {
+                current: 0,
+                wave_margin: Timer::from_seconds(5., TimerMode::Once),
+                spawn_delay: Timer::from_seconds(0.4, TimerMode::Repeating),
+                queue: VecDeque::new(),
+            })
+        .insert_resource(
+            WaveMap {
+                waves: 10,
+                wave_range: HashMap::from([
+                    (EnemyType::Militia, WaveRange{
+                        lowest_level: 0,
+                        lowest_probability: 3,
+                        highest_level: 9,
+                        highest_probability: 10,
+                    })
+                ]),
+            })
         .run();
 }
 
@@ -88,6 +113,6 @@ pub fn setup (
                 Vec2::new(153., 63.),
                 Vec2::new(960., 65.)
             ]
-        }
+        },
     ));
 }

@@ -24,7 +24,7 @@ impl TowerType {
     }
     pub fn damage(&self) -> usize {
         match self {
-            TowerType::XBow => 8,
+            TowerType::XBow => 15,
         }
     }
     pub fn sprite(&self) -> &str {
