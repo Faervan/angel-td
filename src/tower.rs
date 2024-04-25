@@ -17,27 +17,28 @@ pub fn spawn_tower(
     let texture = asset_server.load(tower_type.sprite());
     let tower_scale = Vec3::new(tower_type.scale(), tower_type.scale(), 0.);
     let tower_radius = Vec3::new(tower_type.range() * 2. / tower_type.scale(), tower_type.range() * 2. / tower_type.scale(), 0.);
-    if let Some((width, height, grid_columns, animation_frame_duration)) = tower_type.has_animation() {
-        let layout = TextureAtlasLayout::from_grid(Vec2::new(width, height), grid_columns, 1, None, None);
+    if let Some((width, height, grid_columns)) = tower_type.has_animation() {
+        let layout = TextureAtlasLayout::from_grid(Vec2::new(width, height), usize::from(grid_columns), 1, None, None);
         let texture_atlas_layout = texture_atlas_layouts.add(layout);
         // Use only the subset of sprites in the sheet that make up the run animation
-        let animation_indices = AnimationIndices { first: 0, last: grid_columns-1, forward: true };
-        commands.spawn((
+        let animation_indices = AnimationIndices { first: 0, last: usize::from(grid_columns-1)};
+        let tower = commands.spawn((
             SpriteSheetBundle {
                 texture,
                 atlas: TextureAtlas {
                     layout: texture_atlas_layout,
-                    index: animation_indices.first,
+                    index: usize::from(animation_indices.first),
                 },
                 transform: Transform::from_translation(tower_position).with_scale(tower_scale),
                 ..default()
             },
             animation_indices,
-            AnimationTimer(Timer::from_seconds(animation_frame_duration, TimerMode::Repeating)),
+            AnimationTimer(Timer::from_seconds(tower_type.cooldown().duration().as_secs_f32()/f32::from(grid_columns*2), TimerMode::Repeating)),
             Tower {
                 tower_type: *tower_type,
                 cooldown: tower_type.cooldown(),
-            }
+            },
+            IsCharged,
         ))
         .with_children(|parent| {
             parent.spawn((
@@ -49,7 +50,10 @@ pub fn spawn_tower(
                 },
                 TowerRadiusIndicator,
             ));
-        });
+        }).id();
+        if tower_type.has_rotation() {
+            commands.entity(tower).insert(ShouldRotate);
+        }
     } else {
         commands.spawn((
             SpriteBundle {
@@ -115,7 +119,7 @@ pub fn tower_lost_target(
 }
 
 pub fn tower_rotate_at_target(
-    mut tower_query: Query<(&Target, &mut Transform), (With<Target>, Without<Enemy>)>,
+    mut tower_query: Query<(&Target, &mut Transform), (With<Target>, With<ShouldRotate>, Without<Enemy>)>,
     enemy_query: Query<&Transform, With<Enemy>>,
 ) {
     for (target, mut tower_pos) in tower_query.iter_mut() {
@@ -140,6 +144,37 @@ pub fn tower_charge(
         if tower.cooldown.just_finished() {
             println!("Cooldown finished");
             commands.entity(tower_entity).insert(IsCharged);
+        }
+    }
+}
+
+pub fn tower_animate_charging(
+    mut tower_query: Query<(&mut AnimationTimer, &mut TextureAtlas), (Without<IsCharged>, With<Tower>, Without<IsShooting>)>,
+    time: Res<Time>,
+) {
+    for (mut timer, mut atlas) in &mut tower_query {
+        timer.tick(time.delta());
+        if timer.just_finished() {
+            if atlas.index > 0 {
+                atlas.index -= 1;
+            }
+        }
+    }
+}
+
+pub fn tower_animate_shooting(
+    mut tower_query: Query<(Entity, &AnimationIndices, &mut AnimationTimer, &mut TextureAtlas), (With<IsShooting>, With<Tower>)>,
+    time: Res<Time>,
+    mut commands: Commands,
+) {
+    for (entity, indices, mut timer, mut atlas) in &mut tower_query {
+        timer.tick(time.delta());
+        if timer.just_finished() {
+            if atlas.index < indices.last {
+                atlas.index += 1;
+            } else if atlas.index == indices.last {
+                commands.entity(entity).remove::<IsShooting>();
+            }
         }
     }
 }

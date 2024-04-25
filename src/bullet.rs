@@ -26,14 +26,14 @@ pub fn spawn_bullet(
                 },
             ));
             println!("Spawned new Bullet.");
-            //Reducing the targets calc_health, so that the Tower does not shout at a target that will die by bullets already shot
+            //Reducing the targets calc_health, so that the Tower does not shoot at a target that will die by bullets already shot
             if enemy.calc_health >= damage {
                 enemy.calc_health -= damage;
             } else {
                 enemy.calc_health = 0;
             }
             println!("Calc_health: {}", enemy.calc_health);
-            commands.entity(tower_entity).remove::<IsCharged>();
+            commands.entity(tower_entity).remove::<IsCharged>().insert(IsShooting);
         }
     }
 }

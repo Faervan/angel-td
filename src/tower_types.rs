@@ -24,7 +24,7 @@ impl TowerType {
     }
     pub fn damage(&self) -> usize {
         match self {
-            TowerType::XBow => 10,
+            TowerType::XBow => 8,
         }
     }
     pub fn sprite(&self) -> &str {
@@ -37,10 +37,15 @@ impl TowerType {
             TowerType::XBow => 1.3,
         }
     }
-    // If tower has an animation, returns (width, height, grid_columns, animation_frame_duration)
-    pub fn has_animation(&self) -> Option<(f32, f32, usize, f32)> {
+    // If tower has an animation, returns (width, height, grid_columns)
+    pub fn has_animation(&self) -> Option<(f32, f32, u8)> {
         match self {
-            TowerType::XBow => Some((100., 100., 4, 0.05)),
+            TowerType::XBow => Some((100., 100., 4)),
+        }
+    }
+    pub fn has_rotation(&self) -> bool {
+        match self {
+            TowerType::XBow => true,
         }
     }
 }

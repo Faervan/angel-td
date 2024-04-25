@@ -53,6 +53,8 @@ fn main() {
             spawn_bullet,
             move_bullet,
             bullet_hits_enemy,
+            tower_animate_charging,
+            tower_animate_shooting,
         ))
         .add_systems(Update, (
             enemy_movement,

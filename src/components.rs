@@ -22,9 +22,14 @@ pub struct Tower {
     pub tower_type: TowerType,
     pub cooldown: Timer,
 }
+#[derive(Component)]
+pub struct ShouldRotate;
 
 #[derive(Component)]
 pub struct IsCharged;
+
+#[derive(Component)]
+pub struct IsShooting;
 
 #[derive(Component)]
 pub struct Bullet {
@@ -44,7 +49,6 @@ pub struct Target(pub Entity);
 pub struct AnimationIndices {
     pub first: usize,
     pub last: usize,
-    pub forward: bool
 }
 
 #[derive(Component, Deref, DerefMut)]
