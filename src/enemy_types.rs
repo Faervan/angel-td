@@ -32,4 +32,11 @@ impl EnemyType {
             EnemyType::HolyKnight => 0.,
         }
     }
+
+    pub fn bounty(&self) -> usize {
+        match self {
+            EnemyType::Militia => 10,
+            EnemyType::HolyKnight => 30,
+        }
+    }
 }

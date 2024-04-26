@@ -1,4 +1,6 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
+use crate::Gold;
+
 use super::components::*;
 
 pub fn spawn_bullet(
@@ -64,6 +66,7 @@ pub fn bullet_hits_enemy(
     bullet_query: Query<(Entity, &Transform, &Bullet), Without<Enemy>>,
     mut enemy_query: Query<(Entity, &Transform, &mut Enemy), With<Enemy>>,
     mut commands: Commands,
+    mut gold: ResMut<Gold>,
 ) {
     for (bullet_entity, bullet_pos, bullet) in bullet_query.iter() {
         if let Ok((enemy_entity, enemy_pos, mut enemy)) = enemy_query.get_mut(bullet.target) {
@@ -78,6 +81,8 @@ pub fn bullet_hits_enemy(
                 println!("health: {}", enemy.real_health);
                 if enemy.real_health <= 0 {
                     commands.entity(enemy_entity).despawn();
+                    gold.0 += enemy.enemy_type.bounty();
+                    println!("Gold: {}", gold.0);
                 }
             }
         }

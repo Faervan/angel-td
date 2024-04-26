@@ -23,6 +23,9 @@ use {
     bullet::*,
 };
 
+#[derive(Resource)]
+pub struct Gold(usize);
+
 fn main() {
     App::new()
         .add_plugins((
@@ -85,6 +88,7 @@ fn main() {
                     })
                 ]),
             })
+        .insert_resource(Gold(0))
         .run();
 }
 
