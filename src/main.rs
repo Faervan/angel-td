@@ -7,6 +7,7 @@ use bevy::{
 };
 use enemy_types::EnemyType;
 use enemy_wave_map::{WaveMap, WaveRange, Waves};
+use ui::UiPlugin;
 
 mod components;
 mod bullet;
@@ -16,6 +17,7 @@ mod enemy_types;
 mod tower_types;
 mod bullet_types;
 mod enemy_wave_map;
+mod ui;
 use {
     components::EnemyPath,
     enemy::*,
@@ -47,6 +49,7 @@ fn main() {
             FrameTimeDiagnosticsPlugin,
             // Adds a system that prints diagnostics to the console
             LogDiagnosticsPlugin::default(),
+            UiPlugin,
         ))
         .add_systems(Startup, (
             setup,
