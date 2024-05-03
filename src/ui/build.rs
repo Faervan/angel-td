@@ -1,12 +1,13 @@
 use bevy::prelude::*;
 
-use crate::{ui::styles::{COUNT_STYLE, NORMAL_COUNT_COLOR}, Gold};
+use crate::{enemy_wave_map::{WaveMap, Waves}, ui::{styles::{COUNT_STYLE, NORMAL_COUNT_COLOR}, UiWaveCount}, Gold};
 use super::{styles::{get_count_text_style, UI_BAR_STYLE}, UiBar, UiGoldCount};
 
 pub fn build_hud(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     gold: Res<Gold>,
+    wave: (Res<Waves>, Res<WaveMap>),
 ) {
     commands.spawn((
         NodeBundle {
@@ -40,6 +41,32 @@ pub fn build_hud(
                     ..default()
                 },
                 UiGoldCount,
+            ));
+        });
+        // == Wave Count ==
+        parent.spawn(
+            NodeBundle {
+                style: COUNT_STYLE,
+                background_color: NORMAL_COUNT_COLOR.into(),
+                ..default()
+            }
+        )
+        .with_children(|parent| {
+            parent.spawn((
+                TextBundle {
+                    text: Text {
+                        sections: vec![
+                            TextSection::new(
+                                format!("Wave {}/{}", wave.0.current, wave.1.waves),
+                                get_count_text_style(&asset_server),
+                            )
+                        ],
+                        justify: JustifyText::Center,
+                        ..default()
+                    },
+                    ..default()
+                },
+                UiWaveCount,
             ));
         });
     });

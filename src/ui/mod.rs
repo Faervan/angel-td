@@ -17,6 +17,7 @@ impl Plugin for UiPlugin {
             ))
             .add_systems(Update, (
                 update_gold_count,
+                update_wave_count,
             ));
     }
 }
@@ -26,3 +27,6 @@ pub struct UiBar;
 
 #[derive(Component)]
 pub struct UiGoldCount;
+
+#[derive(Component)]
+pub struct UiWaveCount;
