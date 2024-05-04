@@ -85,7 +85,7 @@ fn main() {
             })
         .insert_resource(
             WaveMap {
-                waves: 10,
+                waves: 9,
                 wave_range: HashMap::from([
                     (EnemyType::Militia, WaveRange{
                         lowest_level: 0,
