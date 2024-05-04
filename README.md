@@ -18,4 +18,4 @@ The resolution is currently hardcoded to 1920x1080, I am unaware of how launchin
 ## Credits
 Thank's to cassherni (Discord) for creating the ballista sprites
 
-The building/hammer sprite comes from https://openverse.org/image/546d7bce-6df4-4515-984f-55bc89d86cbe?q=hammer%20icon
+["Gear-hammer - Lorc - white - game-icons"](https://commons.wikimedia.org/w/index.php?curid=144167118) by [Lorc](https://lorcblog.blogspot.com) is licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/?ref=openverse).
