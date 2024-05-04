@@ -17,3 +17,5 @@ The resolution is currently hardcoded to 1920x1080, I am unaware of how launchin
 
 ## Credits
 Thank's to cassherni (Discord) for creating the ballista sprites
+
+The building/hammer sprite comes from https://openverse.org/image/546d7bce-6df4-4515-984f-55bc89d86cbe?q=hammer%20icon

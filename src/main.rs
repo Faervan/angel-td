@@ -8,6 +8,7 @@ use bevy::{
 use enemy_types::EnemyType;
 use enemy_wave_map::{WaveMap, WaveRange, Waves};
 use ui::UiPlugin;
+use ui::UiState;
 
 mod components;
 mod bullet;
@@ -24,6 +25,9 @@ use {
     tower::*,
     bullet::*,
 };
+
+pub const SCREENWIDTH: f32 = 1920.;
+pub const SCREENHEIGTH: f32 = 1080.;
 
 #[derive(Resource)]
 pub struct Gold(usize);
@@ -53,7 +57,6 @@ fn main() {
         ))
         .add_systems(Startup, (
             setup,
-            spawn_tower,
         ))
         .add_systems(Update, (
             window::close_on_esc,
@@ -67,6 +70,7 @@ fn main() {
             bullet_hits_enemy,
             tower_animate_charging,
             tower_animate_shooting,
+            spawn_tower.run_if(in_state(UiState::TowerPlacing)),
         ))
         .add_systems(Update, (
             enemy_movement,

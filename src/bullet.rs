@@ -27,14 +27,12 @@ pub fn spawn_bullet(
                     damage,
                 },
             ));
-            println!("Spawned new Bullet.");
             //Reducing the targets calc_health, so that the Tower does not shoot at a target that will die by bullets already shot
             if enemy.calc_health >= damage {
                 enemy.calc_health -= damage;
             } else {
                 enemy.calc_health = 0;
             }
-            println!("Calc_health: {}", enemy.calc_health);
             commands.entity(tower_entity).remove::<IsCharged>().insert(IsShooting);
         }
     }
@@ -57,7 +55,6 @@ pub fn move_bullet(
             bullet_pos.translation += direction * bullet.bullet_type.velocity() * time.delta_seconds();
         } else {
             commands.entity(bullet_entity).despawn();
-            println!("Bullet despawned.");
         }
     }
 }
@@ -71,14 +68,12 @@ pub fn bullet_hits_enemy(
     for (bullet_entity, bullet_pos, bullet) in bullet_query.iter() {
         if let Ok((enemy_entity, enemy_pos, mut enemy)) = enemy_query.get_mut(bullet.target) {
             if enemy_pos.translation.distance(bullet_pos.translation) <= enemy.enemy_type.hit_circle() {
-                println!("Hit!");
                 commands.entity(bullet_entity).despawn();
                 if enemy.real_health >= bullet.damage {
                     enemy.real_health -= bullet.damage;
                 } else {
                     enemy.real_health = 0;
                 }
-                println!("health: {}", enemy.real_health);
                 if enemy.real_health <= 0 {
                     commands.entity(enemy_entity).despawn();
                     gold.0 += enemy.enemy_type.bounty();

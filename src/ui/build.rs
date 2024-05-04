@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{enemy_wave_map::{WaveMap, Waves}, ui::{styles::{COUNT_STYLE, NORMAL_COUNT_COLOR}, UiWaveCount}, Gold};
+use crate::{enemy_wave_map::{WaveMap, Waves}, ui::{styles::{COUNT_STYLE, NORMAL_COUNT_COLOR}, TowerPlaceBtn, UiWaveCount}, Gold};
 use super::{styles::{get_count_text_style, UI_BAR_STYLE}, UiBar, UiGoldCount};
 
 pub fn build_hud(
@@ -69,6 +69,39 @@ pub fn build_hud(
                 UiWaveCount,
             ));
         });
+    });
+    commands.spawn(
+        NodeBundle {
+            style: Style {
+                width: Val::Percent(100.),
+                height: Val::Percent(100.),
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::SpaceBetween,
+                align_items: AlignItems::FlexEnd,
+                padding: UiRect {
+                    left: Val::Px(10.),
+                    bottom: Val::Px(10.),
+                    right: Val::Px(10.),
+                    top: Val::Px(0.),
+                },
+                ..default()
+            },
+            ..default()
+        }
+    )
+    .with_children(|parent| {
+        parent.spawn((
+            ButtonBundle {
+                style: Style {
+                    width: Val::Px(100.),
+                    height: Val::Px(100.),
+                    ..default()
+                },
+                image: asset_server.load("sprites/ui/Gear-hammer_-_Lorc_-_white_-_game-icons.svg.png").into(),
+                ..default()
+            },
+            TowerPlaceBtn,
+        ));
     });
     println!("spawned ui");
 }

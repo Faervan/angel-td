@@ -8,6 +8,7 @@ pub const UI_BAR_STYLE: Style = {
     style.height = Val::Percent(0.0);
     style.flex_direction = FlexDirection::Row;
     style.justify_content = JustifyContent::SpaceBetween;
+    style.position_type = PositionType::Absolute;
     style
 };
 

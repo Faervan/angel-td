@@ -102,7 +102,6 @@ pub fn enemy_at_destination (
         if let Ok(path) = path_query.get_single() {
             if enemy.path_state == path.path_points.len()-1 {
                 commands.entity(entity).despawn();
-                println!("Enemy despawned");
             }
         }
     }
