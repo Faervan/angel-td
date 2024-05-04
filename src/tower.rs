@@ -1,5 +1,5 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle, window::PrimaryWindow};
-use crate::{ui::UiState, SCREENHEIGTH, SCREENWIDTH};
+use crate::{ui::UiState, Gold, SCREENHEIGTH, SCREENWIDTH};
 
 use super::{
     tower_types::*,
@@ -15,13 +15,14 @@ pub fn spawn_tower(
     mouse_input: Res<ButtonInput<MouseButton>>,
     window: Query<&Window, With<PrimaryWindow>>,
     mut next_state: ResMut<NextState<UiState>>,
+    mut gold: ResMut<Gold>,
 ) {
-    if mouse_input.just_pressed(MouseButton::Left) {
+    let tower_type = &TowerType::XBow;
+    if mouse_input.just_pressed(MouseButton::Left) && gold.0 >= tower_type.price() {
 
         //Spawn "tower"
         let cursor_pos = window.get_single().unwrap().cursor_position().expect("getting cursor position failed");
         let tower_position = Vec3::new(cursor_pos.x - SCREENWIDTH / 2., (cursor_pos.y - SCREENHEIGTH / 2.) * -1., 0.);
-        let tower_type = &TowerType::XBow;
         let texture = asset_server.load(tower_type.sprite());
         let tower_scale = Vec3::new(tower_type.scale(), tower_type.scale(), 0.);
         let tower_radius = Vec3::new(tower_type.range() * 2. / tower_type.scale(), tower_type.range() * 2. / tower_type.scale(), 0.);
@@ -87,6 +88,7 @@ pub fn spawn_tower(
             });
         }
         next_state.set(UiState::Normal);
+        gold.0 -= tower_type.price();
     }
 }
 

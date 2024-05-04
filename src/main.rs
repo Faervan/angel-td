@@ -95,7 +95,7 @@ fn main() {
                     })
                 ]),
             })
-        .insert_resource(Gold(0))
+        .insert_resource(Gold(230))
         .run();
 }
 
