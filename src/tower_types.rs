@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use super::bullet_types::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 pub enum TowerType {
     XBow,
 }

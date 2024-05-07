@@ -3,9 +3,11 @@ use bevy::prelude::*;
 mod build;
 mod styles;
 mod update_ui;
+mod change_cursor;
 
 use build::*;
 use update_ui::*;
+use change_cursor::*;
 
 pub struct UiPlugin;
 
@@ -13,6 +15,7 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_state::<UiState>()
+            .add_plugins(CursorPlugin)
             .add_systems(Startup, (
                 build_hud
             ))
