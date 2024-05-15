@@ -56,3 +56,6 @@ pub struct AnimationTimer(pub Timer);
 
 #[derive(Component)]
 pub struct GameCursor;
+
+#[derive(Component)]
+pub struct TowerPlacingRadiusIndicator;
