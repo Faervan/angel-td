@@ -113,7 +113,7 @@ pub fn tower_get_target(
 }
 
 pub fn tower_lost_target(
-    tower_query: Query<(Entity, &Tower, &Target, &Transform), With<Target>>,
+    tower_query: Query<(Entity, &Tower, &Target, &Transform)>,
     enemy_query: Query<(&Transform, &Enemy), With<Enemy>>,
     mut commands: Commands,
 ) {
