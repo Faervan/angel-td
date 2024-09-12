@@ -91,11 +91,17 @@ fn main() {
                         lowest_level: 0,
                         lowest_probability: 3,
                         highest_level: 9,
-                        highest_probability: 10,
+                        highest_probability: 15,
+                    }),
+                    (EnemyType::HolyKnight, WaveRange{
+                        lowest_level: 2,
+                        lowest_probability: 1,
+                        highest_level: 9,
+                        highest_probability: 5,
                     })
                 ]),
             })
-        .insert_resource(Gold(230))
+        .insert_resource(Gold(250))
         .run();
 }
 

@@ -16,13 +16,14 @@ pub fn spawn_tower(
     window: Query<&Window, With<PrimaryWindow>>,
     mut next_state: ResMut<NextState<UiState>>,
     mut gold: ResMut<Gold>,
+    tower_query: Query<&Transform, With<Tower>>,
 ) {
     let tower_type = &TowerType::XBow;
-    if mouse_input.just_pressed(MouseButton::Left) && gold.0 >= tower_type.price() {
+    let cursor_pos = window.get_single().unwrap().cursor_position().expect("getting cursor position failed");
+    let tower_position = Vec3::new(cursor_pos.x - SCREENWIDTH / 2., (cursor_pos.y - SCREENHEIGTH / 2.) * -1., 0.);
+    if mouse_input.just_pressed(MouseButton::Left) && gold.0 >= tower_type.price() && tower_type.has_required_space(&tower_position, tower_query) {
 
         //Spawn "tower"
-        let cursor_pos = window.get_single().unwrap().cursor_position().expect("getting cursor position failed");
-        let tower_position = Vec3::new(cursor_pos.x - SCREENWIDTH / 2., (cursor_pos.y - SCREENHEIGTH / 2.) * -1., 0.);
         let texture = asset_server.load(tower_type.sprite());
         let tower_scale = Vec3::new(tower_type.scale(), tower_type.scale(), 0.);
         let tower_radius = Vec3::new(tower_type.range() * 2. / tower_type.scale(), tower_type.range() * 2. / tower_type.scale(), 0.);

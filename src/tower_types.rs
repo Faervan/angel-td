@@ -1,5 +1,8 @@
 use bevy::prelude::*;
-use super::bullet_types::*;
+use super::{
+    bullet_types::*,
+    components::*,
+};
 
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 pub enum TowerType {
@@ -29,7 +32,7 @@ impl TowerType {
     }
     pub fn price(&self) -> usize {
         match self {
-            TowerType::XBow => 230,
+            TowerType::XBow => 50,
         }
     }
     pub fn sprite(&self) -> &str {
@@ -52,5 +55,13 @@ impl TowerType {
         match self {
             TowerType::XBow => true,
         }
+    }
+    pub fn has_required_space(&self, position: &Vec3, tower_query: Query<&Transform, With<Tower>>) -> bool {
+        for tower in tower_query.iter() {
+            if tower.translation.distance(*position) <= 50. {
+                return false;
+            }
+        }
+        true
     }
 }
