@@ -21,7 +21,7 @@ pub fn spawn_tower(
     let tower_type = &TowerType::XBow;
     let cursor_pos = window.get_single().unwrap().cursor_position().expect("getting cursor position failed");
     let tower_position = Vec3::new(cursor_pos.x - SCREENWIDTH / 2., (cursor_pos.y - SCREENHEIGTH / 2.) * -1., 0.);
-    if mouse_input.just_pressed(MouseButton::Left) && gold.0 >= tower_type.price() && tower_type.has_required_space(&tower_position, tower_query) {
+    if tower_can_be_placed(&mouse_input, &window, &gold, tower_query) {
 
         //Spawn "tower"
         let texture = asset_server.load(tower_type.sprite());
@@ -91,6 +91,18 @@ pub fn spawn_tower(
         next_state.set(UiState::Normal);
         gold.0 -= tower_type.price();
     }
+}
+
+pub fn tower_can_be_placed(
+    mouse_input: &Res<ButtonInput<MouseButton>>,
+    window: &Query<&Window, With<PrimaryWindow>>,
+    gold: &ResMut<Gold>,
+    tower_query: Query<&Transform, With<Tower>>,
+) -> bool {
+    let tower_type = &TowerType::XBow;
+    let cursor_pos = window.get_single().unwrap().cursor_position().expect("getting cursor position failed");
+    let tower_position = Vec3::new(cursor_pos.x - SCREENWIDTH / 2., (cursor_pos.y - SCREENHEIGTH / 2.) * -1., 0.);
+    mouse_input.just_pressed(MouseButton::Left) && gold.0 >= tower_type.price() && tower_type.has_required_space(&tower_position, tower_query)
 }
 
 pub fn tower_get_target(

@@ -9,9 +9,9 @@ pub struct CursorPlugin;
 impl Plugin for CursorPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(OnEnter(UiState::TowerPlacing), set_custom_cursor)
-            .add_systems(Update, move_cursor.run_if(in_state(UiState::TowerPlacing)))
-            .add_systems(OnExit(UiState::TowerPlacing), remove_custom_cursor);
+            .add_systems(OnEnter(UiState::TowerPlacing(true)), set_custom_cursor)
+            .add_systems(Update, move_cursor.run_if(in_state(UiState::TowerPlacing(true))))
+            .add_systems(OnExit(UiState::TowerPlacing(true)), remove_custom_cursor);
     }
 }
 
