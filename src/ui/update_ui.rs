@@ -72,11 +72,14 @@ pub fn update_tower_placing_state(
     mut next_state: ResMut<NextState<UiState>>,
 ) {
     let tower_type = &TowerType::XBow;
-    let cursor_pos = window.get_single().unwrap().cursor_position().expect("getting cursor position failed");
-    let tower_position = Vec3::new(cursor_pos.x - SCREENWIDTH / 2., (cursor_pos.y - SCREENHEIGTH / 2.) * -1., 0.);
-    if gold.0 >= tower_type.price() && tower_type.has_required_space(&tower_position, tower_query) {
-        next_state.set(UiState::TowerPlacing(true));
-    } else {
-        next_state.set(UiState::TowerPlacing(true));
+    if let Some(cursor_pos) = window.get_single().unwrap().cursor_position() {
+        let tower_position = Vec3::new(cursor_pos.x - SCREENWIDTH / 2., (cursor_pos.y - SCREENHEIGTH / 2.) * -1., 0.);
+        if next_state.0 != Some(UiState::Normal) {
+            if gold.0 >= tower_type.price() && tower_type.has_required_space(&tower_position, tower_query) {
+                next_state.set(UiState::TowerPlacing(true));
+            } else {
+                next_state.set(UiState::TowerPlacing(false));
+            }
+        }
     }
 }
