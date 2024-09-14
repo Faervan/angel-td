@@ -70,7 +70,7 @@ fn main() {
             bullet_hits_enemy,
             tower_animate_charging,
             tower_animate_shooting,
-            spawn_tower.run_if(in_state(UiState::TowerPlacing)),
+            spawn_tower.run_if(in_state(UiState::TowerPlacing(true))),
         ))
         .add_systems(Update, (
             enemy_movement,

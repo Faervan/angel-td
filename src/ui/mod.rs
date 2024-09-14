@@ -16,13 +16,14 @@ impl Plugin for UiPlugin {
         app
             .init_state::<UiState>()
             .add_plugins(CursorPlugin)
-            .add_systems(Startup, (
+            .add_systems(Startup,
                 build_hud
-            ))
+            )
             .add_systems(Update, (
                 update_gold_count,
                 update_wave_count,
                 interact_with_tower_place_btn,
+                update_tower_placing_state.run_if(in_state(UiState::TowerPlacing(true)).or_else(in_state(UiState::TowerPlacing(false)))),
             ));
     }
 }
@@ -43,5 +44,5 @@ pub struct TowerPlaceBtn;
 pub enum UiState {
     #[default]
     Normal,
-    TowerPlacing,
+    TowerPlacing(bool),
 }
