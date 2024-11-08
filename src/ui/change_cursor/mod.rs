@@ -42,7 +42,7 @@ pub fn set_custom_cursor (
             parent.spawn((
                 MaterialMesh2dBundle {
                     mesh: meshes.add(Circle::default()).into(),
-                    material: materials.add(Color::rgba(0., 0., 0., 0.5)),
+                    material: materials.add(Color::srgba(0., 0., 0., 0.5)),
                     transform: Transform::from_translation(Vec3::new(0., 0., -0.5)).with_scale(tower_radius),
                     ..default()
                 },
@@ -59,8 +59,8 @@ fn update_custom_cursor (
 ) {
     let material = materials.get_mut(material_handle.get_single().unwrap()).unwrap();
     match placing_state.get() {
-        UiState::TowerPlacing(true) => material.color = Color::rgba(0., 0., 0., 0.5),
-        UiState::TowerPlacing(false) => material.color = Color::rgba(255., 0., 0., 0.5),
+        UiState::TowerPlacing(true) => material.color = Color::srgba(0., 0., 0., 0.5),
+        UiState::TowerPlacing(false) => material.color = Color::srgba(255., 0., 0., 0.5),
         UiState::Normal => println!("Something went wrong! update_custom_cursor got called while UiState was normal")
     }
 }

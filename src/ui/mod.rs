@@ -9,6 +9,8 @@ use build::*;
 use update_ui::*;
 use change_cursor::*;
 
+use crate::spawn_tower;
+
 pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
@@ -23,7 +25,10 @@ impl Plugin for UiPlugin {
                 update_gold_count,
                 update_wave_count,
                 interact_with_tower_place_btn,
-                update_tower_placing_state.run_if(in_state(UiState::TowerPlacing(true)).or_else(in_state(UiState::TowerPlacing(false)))),
+                update_tower_placing_state
+                    .run_if(in_state(UiState::TowerPlacing(true))
+                        .or_else(in_state(UiState::TowerPlacing(false))))
+                    .before(spawn_tower),
             ));
     }
 }
