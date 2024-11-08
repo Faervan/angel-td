@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::*, window,
+    prelude::*,
 };
 use enemy_types::EnemyType;
 use enemy_wave_map::{WaveMap, WaveRange, Waves};
@@ -59,7 +59,7 @@ fn main() {
             setup,
         ))
         .add_systems(Update, (
-            window::close_on_esc,
+            close_on_esc,
             spawn_enemies,
             tower_get_target,
             tower_lost_target,
@@ -134,3 +134,11 @@ pub fn setup (
     ));
 }
 
+fn close_on_esc(
+    input: Res<ButtonInput<KeyCode>>,
+    mut exit: EventWriter<AppExit>,
+) {
+    if input.just_pressed(KeyCode::Escape) {
+        exit.send(AppExit::Success);
+    }
+}

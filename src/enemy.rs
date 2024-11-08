@@ -30,15 +30,13 @@ pub fn spawn_enemies(
                     ..default()
                 },
                 Enemy {
-                    enemy_type: enemy_type,
+                    enemy_type,
                     path_state: 0,
                     real_health: health,
                     calc_health: health,
                 }
             ));
         }
-    } else if waves.current == wavemap.waves {
-        println!("All waves completed!");
     } else if waves.queue.len() == 0 {
         if waves.wave_margin.paused() {
             waves.wave_margin.unpause();

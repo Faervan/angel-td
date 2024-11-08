@@ -46,9 +46,9 @@ impl TowerType {
         }
     }
     // If tower has an animation, returns (width, height, grid_columns)
-    pub fn has_animation(&self) -> Option<(f32, f32, u8)> {
+    pub fn has_animation(&self) -> Option<(u32, u32, u8)> {
         match self {
-            TowerType::XBow => Some((100., 100., 4)),
+            TowerType::XBow => Some((100, 100, 4)),
         }
     }
     pub fn has_rotation(&self) -> bool {

@@ -28,19 +28,19 @@ pub fn spawn_tower(
         let tower_scale = Vec3::new(tower_type.scale(), tower_type.scale(), 0.);
         let tower_radius = Vec3::new(tower_type.range() * 2. / tower_type.scale(), tower_type.range() * 2. / tower_type.scale(), 0.);
         if let Some((width, height, grid_columns)) = tower_type.has_animation() {
-            let layout = TextureAtlasLayout::from_grid(Vec2::new(width, height), usize::from(grid_columns), 1, None, None);
+            let layout = TextureAtlasLayout::from_grid(UVec2::new(width, height), grid_columns.into(), 1, None, None);
             let texture_atlas_layout = texture_atlas_layouts.add(layout);
             // Use only the subset of sprites in the sheet that make up the run animation
-            let animation_indices = AnimationIndices { first: 0, last: usize::from(grid_columns-1)};
+            let animation_indices = AnimationIndices { first: 0, last: (grid_columns - 1).into()};
             let tower = commands.spawn((
-                SpriteSheetBundle {
+                SpriteBundle {
                     texture,
-                    atlas: TextureAtlas {
-                        layout: texture_atlas_layout,
-                        index: usize::from(animation_indices.first),
-                    },
                     transform: Transform::from_translation(tower_position).with_scale(tower_scale),
                     ..default()
+                },
+                TextureAtlas {
+                    layout: texture_atlas_layout,
+                    index: usize::from(animation_indices.first)
                 },
                 animation_indices,
                 AnimationTimer(Timer::from_seconds(tower_type.cooldown().duration().as_secs_f32()/f32::from(grid_columns*2), TimerMode::Repeating)),
@@ -54,7 +54,7 @@ pub fn spawn_tower(
                 parent.spawn((
                     MaterialMesh2dBundle {
                         mesh: meshes.add(Circle::default()).into(),
-                        material: materials.add(Color::rgba(0., 0., 0., 0.5)),
+                        material: materials.add(Color::srgba(0., 0., 0., 0.5)),
                         transform: Transform::from_translation(Vec3::new(0., 0., -0.5)).with_scale(tower_radius),
                         ..default()
                     },
@@ -80,7 +80,7 @@ pub fn spawn_tower(
                 parent.spawn((
                     MaterialMesh2dBundle {
                         mesh: meshes.add(Circle::default()).into(),
-                        material: materials.add(Color::rgba(0., 0., 0., 0.5)),
+                        material: materials.add(Color::srgba(0., 0., 0., 0.5)),
                         transform: Transform::from_translation(Vec3::new(0., 0., -0.5)).with_scale(tower_radius),
                         ..default()
                     },

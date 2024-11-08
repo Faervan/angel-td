@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-pub const NORMAL_COUNT_COLOR: Color = Color::rgba(0.15, 0.15, 0.15, 0.5);
+pub const NORMAL_COUNT_COLOR: Color = Color::srgba(0.15, 0.15, 0.15, 0.5);
 
 pub const UI_BAR_STYLE: Style = {
     let mut style = Style::DEFAULT;

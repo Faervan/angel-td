@@ -16,7 +16,7 @@ pub fn spawn_bullet(
             commands.spawn((
                 MaterialMesh2dBundle {
                     mesh: meshes.add(Circle::default()).into(),
-                    material: materials.add(Color::rgb(1., 0., 0.)),
+                    material: materials.add(Color::srgb(1., 0., 0.)),
                     transform: Transform::from_translation(tower_pos.translation).with_scale(Vec3::new(10., 10., 1.)),
                     ..default()
                 },
