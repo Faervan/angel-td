@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 bevy = { version = "0.14.2", features = ["wayland"] }
 rand = "0.8.5"
+wasm-bindgen = "0.2.95"
 
 # Enable max optimizations for dependencies, but not for our code:
 [profile.dev.package."*"]

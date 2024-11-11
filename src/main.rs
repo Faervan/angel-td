@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 use std::collections::VecDeque;
+use std::sync::Mutex;
+
+use wasm_bindgen::prelude::*;
 
 use bevy::{
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
@@ -44,13 +47,14 @@ fn main() {
                         mode: bevy::window::WindowMode::BorderlessFullscreen,
                         present_mode: bevy::window::PresentMode::AutoVsync,
                         enabled_buttons: bevy::window::EnabledButtons { minimize: false, maximize: false, close: false },
+                        canvas: Some("#angel-td".to_string()),
                         ..default()
                     }),
                     ..default()
                 }
             ).set(ImagePlugin::default_nearest()),
             // Adds frame time diagnostics
-            FrameTimeDiagnosticsPlugin,
+            // FrameTimeDiagnosticsPlugin,
             // Adds a system that prints diagnostics to the console
             LogDiagnosticsPlugin::default(),
             UiPlugin,
@@ -103,6 +107,7 @@ fn main() {
             })
         .insert_resource(Gold(250))
         .run();
+    log("finally done");
 }
 
 pub fn setup (
@@ -138,7 +143,22 @@ fn close_on_esc(
     input: Res<ButtonInput<KeyCode>>,
     mut exit: EventWriter<AppExit>,
 ) {
-    if input.just_pressed(KeyCode::Escape) {
+    if input.just_pressed(KeyCode::Escape) || unsafe {*CLOSE_GAME.lock().unwrap()} {
+        log("We are done here");
         exit.send(AppExit::Success);
     }
+}
+
+#[wasm_bindgen]
+extern {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
+
+static mut CLOSE_GAME: Mutex<bool> = Mutex::new(false);
+
+#[wasm_bindgen]
+pub unsafe fn quit() {
+    log("Quitting...");
+    *CLOSE_GAME.get_mut().unwrap() = true;
 }

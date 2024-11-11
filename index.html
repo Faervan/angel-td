@@ -1,0 +1,59 @@
+<html lang=en>
+  <head>
+    <meta charset=UTF-8 />
+    <style>
+      body {
+        background: linear-gradient(
+          135deg,
+          white 0%,
+          white 49%,
+          black 49%,
+          black 51%,
+          white 51%,
+          white 100%
+        ) repeat;
+        background-size: 20px 20px;
+      }
+      canvas {
+        background-color: white;
+      }
+    </style>
+    <title>WASM Example</title>
+  </head>
+    <body>
+        <button onclick="play()">Play</button>
+        <canvas id="angel-td" style="display: none;"></canvas>
+    </body>
+    <script type="module">
+    import init, { run, quit } from './wasm/target/angel-td-wasm.js'
+    import destroy from './wasm/target/angel-td-wasm.js'
+        const canvas = document.querySelector('#angel-td');
+        document.addEventListener('DOMContentLoaded', e => {
+            init();
+        });
+        function play() {
+            canvas.style.display = "block";
+            if (canvas.requestFullscreen) {
+              canvas.requestFullscreen();
+            } else if (canvas.webkitRequestFullscreen) { /* Safari */
+              canvas.webkitRequestFullscreen();
+            } else if (canvas.msRequestFullscreen) { /* IE11 */
+              canvas.msRequestFullscreen();
+            }
+            run();
+        }
+        document.addEventListener('fullscreenchange', exitHandler, false);
+        document.addEventListener('mozfullscreenchange', exitHandler, false);
+        document.addEventListener('MSFullscreenChange', exitHandler, false);
+        document.addEventListener('webkitfullscreenchange', exitHandler, false);
+
+        function exitHandler() {
+            if (!document.webkitIsFullScreen && !document.mozFullScreen && !document.msFullscreenElement) {
+                quit();
+                destroy();
+                canvas.style.display = "none";
+            }
+        }
+        window.play = play;
+    </script>
+</html>
