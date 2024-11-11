@@ -5,7 +5,7 @@ use std::sync::Mutex;
 use wasm_bindgen::prelude::*;
 
 use bevy::{
-    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    diagnostic::LogDiagnosticsPlugin,
     prelude::*,
 };
 use enemy_types::EnemyType;
@@ -53,15 +53,13 @@ fn main() {
                     ..default()
                 }
             ).set(ImagePlugin::default_nearest()),
-            // Adds frame time diagnostics
-            // FrameTimeDiagnosticsPlugin,
             // Adds a system that prints diagnostics to the console
             LogDiagnosticsPlugin::default(),
             UiPlugin,
         ))
-        .add_systems(Startup, (
-            setup,
-        ))
+        .init_state::<AppState>()
+        .add_systems(OnEnter(AppState::InGame), setup)
+        .add_systems(OnEnter(AppState::Idle), cleanup)
         .add_systems(Update, (
             close_on_esc,
             spawn_enemies,
@@ -75,37 +73,12 @@ fn main() {
             tower_animate_charging,
             tower_animate_shooting,
             spawn_tower.run_if(in_state(UiState::TowerPlacing(true))),
-        ))
+        ).run_if(in_state(AppState::InGame)))
         .add_systems(Update, (
             enemy_movement,
             enemy_at_destination,
-        ).chain())
-        .insert_resource(
-            Waves {
-                current: 0,
-                wave_margin: Timer::from_seconds(5., TimerMode::Once),
-                spawn_delay: Timer::from_seconds(0.4, TimerMode::Repeating),
-                queue: VecDeque::new(),
-            })
-        .insert_resource(
-            WaveMap {
-                waves: 9,
-                wave_range: HashMap::from([
-                    (EnemyType::Militia, WaveRange{
-                        lowest_level: 0,
-                        lowest_probability: 3,
-                        highest_level: 9,
-                        highest_probability: 15,
-                    }),
-                    (EnemyType::HolyKnight, WaveRange{
-                        lowest_level: 2,
-                        lowest_probability: 1,
-                        highest_level: 9,
-                        highest_probability: 5,
-                    })
-                ]),
-            })
-        .insert_resource(Gold(250))
+        ).chain().run_if(in_state(AppState::InGame)))
+        .add_systems(Update, toggle_app_state)
         .run();
     log("finally done");
 }
@@ -137,15 +110,85 @@ pub fn setup (
             ]
         },
     ));
+    commands.insert_resource(
+        Waves {
+            current: 0,
+            wave_margin: Timer::from_seconds(5., TimerMode::Once),
+            spawn_delay: Timer::from_seconds(0.4, TimerMode::Repeating),
+            queue: VecDeque::new(),
+        }
+    );
+    commands.insert_resource(
+        WaveMap {
+            waves: 9,
+            wave_range: HashMap::from([
+                (EnemyType::Militia, WaveRange{
+                    lowest_level: 0,
+                    lowest_probability: 3,
+                    highest_level: 9,
+                    highest_probability: 15,
+                }),
+                (EnemyType::HolyKnight, WaveRange{
+                    lowest_level: 2,
+                    lowest_probability: 1,
+                    highest_level: 9,
+                    highest_probability: 5,
+                })
+            ]),
+    });
+    commands.insert_resource(Gold(250));
+}
+
+fn cleanup(
+    mut commands: Commands,
+    entities: Query<Entity>,
+) {
+    for entity in entities.iter() {
+        commands.entity(entity).despawn();
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(States, Hash, PartialEq, Eq, Clone, Debug, Default)]
+enum AppState {
+    #[default]
+    InGame,
+    Idle
+}
+
+#[cfg(target_arch = "wasm32")]
+#[derive(States, Hash, PartialEq, Eq, Clone, Debug, Default)]
+enum AppState {
+    InGame,
+    #[default]
+    Idle
 }
 
 fn close_on_esc(
     input: Res<ButtonInput<KeyCode>>,
     mut exit: EventWriter<AppExit>,
 ) {
-    if input.just_pressed(KeyCode::Escape) || unsafe {*CLOSE_GAME.lock().unwrap()} {
+    #[cfg(not(target_arch = "wasm32"))]
+    if input.just_pressed(KeyCode::Escape) {
         log("We are done here");
         exit.send(AppExit::Success);
+    }
+}
+
+fn toggle_app_state(
+    mut next_state: ResMut<NextState<AppState>>,
+    app_state: Res<State<AppState>>,
+) {
+    log("toggle_app_state is being executed now!");
+    let state = unsafe {
+        TOGGLE_STATE.get_mut().unwrap()
+    };
+    if *state {
+        next_state.set(match app_state.get() {
+            AppState::InGame => AppState::Idle,
+            AppState::Idle => AppState::InGame
+        });
+        *state = false;
     }
 }
 
@@ -155,10 +198,10 @@ extern {
     fn log(s: &str);
 }
 
-static mut CLOSE_GAME: Mutex<bool> = Mutex::new(false);
+static mut TOGGLE_STATE: Mutex<bool> = Mutex::new(false);
 
 #[wasm_bindgen]
-pub unsafe fn quit() {
-    log("Quitting...");
-    *CLOSE_GAME.get_mut().unwrap() = true;
+pub unsafe fn toggle_state() {
+    log("toggling state...");
+    *TOGGLE_STATE.get_mut().unwrap() = true;
 }

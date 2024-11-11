@@ -25,8 +25,7 @@
         <canvas id="angel-td" style="display: none;"></canvas>
     </body>
     <script type="module">
-    import init, { run, quit } from './wasm/target/angel-td-wasm.js'
-    import destroy from './wasm/target/angel-td-wasm.js'
+    import init, { toggle_state } from './wasm/target/angel-td-wasm.js'
         const canvas = document.querySelector('#angel-td');
         document.addEventListener('DOMContentLoaded', e => {
             init();
@@ -40,7 +39,7 @@
             } else if (canvas.msRequestFullscreen) { /* IE11 */
               canvas.msRequestFullscreen();
             }
-            run();
+            toggle_state();
         }
         document.addEventListener('fullscreenchange', exitHandler, false);
         document.addEventListener('mozfullscreenchange', exitHandler, false);
@@ -49,8 +48,7 @@
 
         function exitHandler() {
             if (!document.webkitIsFullScreen && !document.mozFullScreen && !document.msFullscreenElement) {
-                quit();
-                destroy();
+                toggle_state();
                 canvas.style.display = "none";
             }
         }

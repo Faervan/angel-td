@@ -9,7 +9,7 @@ use build::*;
 use update_ui::*;
 use change_cursor::*;
 
-use crate::spawn_tower;
+use crate::{spawn_tower, AppState};
 
 pub struct UiPlugin;
 
@@ -18,7 +18,7 @@ impl Plugin for UiPlugin {
         app
             .init_state::<UiState>()
             .add_plugins(CursorPlugin)
-            .add_systems(Startup,
+            .add_systems(OnEnter(AppState::InGame),
                 build_hud
             )
             .add_systems(Update, (
@@ -29,7 +29,7 @@ impl Plugin for UiPlugin {
                     .run_if(in_state(UiState::TowerPlacing(true))
                         .or_else(in_state(UiState::TowerPlacing(false))))
                     .before(spawn_tower),
-            ));
+            ).run_if(in_state(AppState::InGame)));
     }
 }
 
