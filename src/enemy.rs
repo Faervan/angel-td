@@ -37,7 +37,7 @@ pub fn spawn_enemies(
                 }
             ));
         }
-    } else if waves.queue.len() == 0 {
+    } else if waves.queue.len() == 0 && waves.current != wavemap.waves {
         if waves.wave_margin.paused() {
             waves.wave_margin.unpause();
         }
