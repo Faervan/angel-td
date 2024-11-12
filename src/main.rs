@@ -150,7 +150,7 @@ pub fn setup (
 
 fn cleanup(
     mut commands: Commands,
-    entities: Query<Entity>,
+    entities: Query<Entity, Without<Window>>,
 ) {
     println!("cleanup");
     for entity in entities.iter() {

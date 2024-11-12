@@ -39,6 +39,7 @@
             } else if (canvas.msRequestFullscreen) { /* IE11 */
               canvas.msRequestFullscreen();
             }
+            console.log("Right now!");
             toggle_state();
         }
         document.addEventListener('fullscreenchange', exitHandler, false);
