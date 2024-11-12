@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 use std::collections::VecDeque;
+#[cfg(target_arch = "wasm32")]
 use std::sync::Mutex;
 
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
 use bevy::{
@@ -58,8 +60,9 @@ fn main() {
             UiPlugin,
         ))
         .init_state::<AppState>()
+        .add_systems(Startup, init)
         .add_systems(OnEnter(AppState::InGame), setup)
-        .add_systems(OnEnter(AppState::Idle), cleanup)
+        .add_systems(OnExit(AppState::InGame), cleanup)
         .add_systems(Update, (
             close_on_esc,
             spawn_enemies,
@@ -80,7 +83,13 @@ fn main() {
         ).chain().run_if(in_state(AppState::InGame)))
         .add_systems(Update, toggle_app_state)
         .run();
-    log("finally done");
+}
+
+fn init(mut next_state: ResMut<NextState<AppState>>) {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        next_state.set(AppState::InGame);
+    }
 }
 
 pub fn setup (
@@ -143,20 +152,12 @@ fn cleanup(
     mut commands: Commands,
     entities: Query<Entity>,
 ) {
+    println!("cleanup");
     for entity in entities.iter() {
         commands.entity(entity).despawn();
     }
 }
 
-#[cfg(not(target_arch = "wasm32"))]
-#[derive(States, Hash, PartialEq, Eq, Clone, Debug, Default)]
-enum AppState {
-    #[default]
-    InGame,
-    Idle
-}
-
-#[cfg(target_arch = "wasm32")]
 #[derive(States, Hash, PartialEq, Eq, Clone, Debug, Default)]
 enum AppState {
     InGame,
@@ -170,38 +171,44 @@ fn close_on_esc(
 ) {
     #[cfg(not(target_arch = "wasm32"))]
     if input.just_pressed(KeyCode::Escape) {
-        log("We are done here");
         exit.send(AppExit::Success);
     }
 }
 
+#[allow(unused_variables, unused_mut)]
 fn toggle_app_state(
     mut next_state: ResMut<NextState<AppState>>,
     app_state: Res<State<AppState>>,
 ) {
-    log("toggle_app_state is being executed now!");
-    let state = unsafe {
-        TOGGLE_STATE.get_mut().unwrap()
-    };
-    if *state {
-        next_state.set(match app_state.get() {
-            AppState::InGame => AppState::Idle,
-            AppState::Idle => AppState::InGame
-        });
-        *state = false;
+    #[cfg(target_arch = "wasm32")]
+    {
+        let state = unsafe {
+            TOGGLE_STATE.get_mut().unwrap()
+        };
+        if *state {
+            log("toggle_app_state is being executed now!");
+            next_state.set(match app_state.get() {
+                AppState::InGame => AppState::Idle,
+                AppState::Idle => AppState::InGame
+            });
+            *state = false;
+        }
     }
 }
 
-#[wasm_bindgen]
-extern {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
 
-static mut TOGGLE_STATE: Mutex<bool> = Mutex::new(false);
+#[cfg(target_arch = "wasm32")]
+pub mod wasm {
+    #[wasm_bindgen]
+    extern {
+        #[wasm_bindgen(js_namespace = console)]
+        fn log(s: &str);
+    }
 
-#[wasm_bindgen]
-pub unsafe fn toggle_state() {
-    log("toggling state...");
-    *TOGGLE_STATE.get_mut().unwrap() = true;
+    static mut TOGGLE_STATE: Mutex<bool> = Mutex::new(false);
+
+    #[wasm_bindgen]
+    pub unsafe fn toggle_state() {
+        *TOGGLE_STATE.get_mut().unwrap() = true;
+    }
 }

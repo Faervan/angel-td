@@ -9,7 +9,7 @@ use build::*;
 use update_ui::*;
 use change_cursor::*;
 
-use crate::{spawn_tower, AppState};
+use crate::{setup, spawn_tower, AppState};
 
 pub struct UiPlugin;
 
@@ -19,7 +19,7 @@ impl Plugin for UiPlugin {
             .init_state::<UiState>()
             .add_plugins(CursorPlugin)
             .add_systems(OnEnter(AppState::InGame),
-                build_hud
+                build_hud.after(setup)
             )
             .add_systems(Update, (
                 update_gold_count,
