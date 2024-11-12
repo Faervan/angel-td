@@ -198,17 +198,17 @@ fn toggle_app_state(
 
 
 #[cfg(target_arch = "wasm32")]
-pub mod wasm {
-    #[wasm_bindgen]
-    extern {
-        #[wasm_bindgen(js_namespace = console)]
-        fn log(s: &str);
-    }
+#[wasm_bindgen]
+extern {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+}
 
-    static mut TOGGLE_STATE: Mutex<bool> = Mutex::new(false);
+#[cfg(target_arch = "wasm32")]
+static mut TOGGLE_STATE: Mutex<bool> = Mutex::new(false);
 
-    #[wasm_bindgen]
-    pub unsafe fn toggle_state() {
-        *TOGGLE_STATE.get_mut().unwrap() = true;
-    }
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub unsafe fn toggle_state() {
+    *TOGGLE_STATE.get_mut().unwrap() = true;
 }
